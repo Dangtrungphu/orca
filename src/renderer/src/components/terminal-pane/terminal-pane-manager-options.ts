@@ -32,6 +32,7 @@ import type { TerminalPaneManagerOptionsContext } from './terminal-pane-mount-co
 import { resolveTerminalInlineImagesEnabled } from '../../../../shared/terminal-inline-images-settings'
 import { ORCA_LAYOUT_OWNER_IS_MAIN } from '../../../../shared/layout-owner-switch'
 import { layoutOwnerPaneGestures } from './terminal-pane-layout-owner-gestures'
+import { terminalBackgroundNeedsTransparency } from './terminal-appearance'
 
 /** Builds the imperative PaneManager option bag from the mount context. */
 export function createTerminalPaneManagerOptions(
@@ -159,6 +160,10 @@ export function createTerminalPaneManagerOptions(
         cursorStyle,
         cursorInactiveStyle: resolveTerminalCursorInactiveStyle(cursorStyle),
         cursorBlink: currentSettings?.terminalCursorBlink ?? true,
+        // Why at construction: xterm documents allowTransparency as pre-open; seed it so panes never rely on the post-open toggle.
+        allowTransparency: currentSettings
+          ? terminalBackgroundNeedsTransparency(currentSettings)
+          : false,
         scrollSensitivity: normalizeTerminalScrollSensitivity(
           currentSettings?.terminalScrollSensitivity
         ),
