@@ -10,6 +10,7 @@ import type { SerializeAddon } from '@xterm/addon-serialize'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
 import type { TerminalLeafId } from '../../../../shared/stable-pane-id'
 import type { TerminalPanePlacement } from '../../../../shared/terminal-pane-placement'
+import type { TerminalBackgroundImageFit } from '../../../../shared/terminal-background-image'
 import type { TerminalWebglAutoDecision } from './terminal-webgl-auto-policy'
 
 export type { TerminalScrollIntentTarget } from './terminal-scroll-intent'
@@ -117,6 +118,10 @@ export type PaneStyleOptions = {
   focusFollowsMouse?: boolean
   paddingX?: number
   paddingY?: number
+  /** Inline data URL; null/undefined clears the layer. */
+  backgroundImage?: string | null
+  backgroundImageOpacity?: number
+  backgroundImageFit?: TerminalBackgroundImageFit
 }
 
 export type ManagedPane = {

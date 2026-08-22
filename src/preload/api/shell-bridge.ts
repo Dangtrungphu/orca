@@ -43,6 +43,9 @@ export const shellApi = {
   pickRepoIconImage: (): Promise<{ dataUrl: string; fileName: string } | null> =>
     ipcRenderer.invoke('shell:pickRepoIconImage'),
 
+  pickTerminalBackgroundImage: (): Promise<{ dataUrl: string; fileName: string } | null> =>
+    ipcRenderer.invoke('shell:pickTerminalBackgroundImage'),
+
   pickAudio: (): Promise<string | null> => ipcRenderer.invoke('shell:pickAudio'),
 
   pickDirectory: (args: { defaultPath?: string }): Promise<string | null> =>

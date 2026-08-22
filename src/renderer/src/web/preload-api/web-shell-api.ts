@@ -28,6 +28,7 @@ export function createShellApi(): NonNullable<Partial<PreloadApi>['shell']> {
     pickAttachments: () => Promise.resolve([]),
     pickImage: () => Promise.resolve(null),
     pickRepoIconImage: () => Promise.resolve(null),
+    pickTerminalBackgroundImage: () => Promise.resolve(null),
     pickAudio: () => Promise.resolve(null),
     pickDirectory: () => Promise.resolve(null),
     copyFile: () => Promise.resolve()

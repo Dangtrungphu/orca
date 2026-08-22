@@ -13,6 +13,7 @@ import type { RuntimeStatus } from '../../../../shared/runtime-types'
 import { normalizeTerminalQuickCommands } from '../../../../shared/terminal-quick-commands'
 import { assertTerminalQuickCommandsStorable } from '../../../../shared/terminal-quick-command-prompt-limit'
 import { normalizeTerminalCustomThemes } from '../../../../shared/terminal-custom-themes'
+import { sanitizeTerminalBackgroundImageSettings } from '../../../../shared/terminal-background-image'
 import { normalizeTaskProviderSettings } from '../../../../shared/task-providers'
 import { normalizeOpenInApplications } from '../../../../shared/open-in-applications'
 import { createSettingsSearchState, type SettingsSearchState } from './settings-search-state'
@@ -79,6 +80,7 @@ function normalizeSettingsUpdates(
       updates.terminalCustomThemes
     )
   }
+  sanitizeTerminalBackgroundImageSettings(updates, sanitizedUpdates)
   if ('visibleTaskProviders' in updates || 'defaultTaskSource' in updates) {
     const taskProviderSettings = normalizeTaskProviderSettings({
       visibleTaskProviders:

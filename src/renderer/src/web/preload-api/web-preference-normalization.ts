@@ -22,6 +22,11 @@ import type { PersistedUIState } from '../../../../shared/persisted-ui-state-typ
 import { normalizeStatusBarUsageMode } from '../../../../shared/status-bar-usage-mode'
 import { normalizeTerminalCustomThemes } from '../../../../shared/terminal-custom-themes'
 import {
+  normalizeTerminalBackgroundImage,
+  normalizeTerminalBackgroundImageFit,
+  normalizeTerminalBackgroundImageOpacity
+} from '../../../../shared/terminal-background-image'
+import {
   normalizeTuiAgentArgsRecord,
   normalizeTuiAgentEnvRecord
 } from '../../../../shared/tui-agent-launch-defaults'
@@ -178,6 +183,21 @@ export function mergeSettings(
       : (base.activeRuntimeEnvironmentId ?? null),
     terminalCustomThemes: normalizeTerminalCustomThemes(
       updates.terminalCustomThemes ?? base.terminalCustomThemes
+    ),
+    terminalBackgroundImage: normalizeTerminalBackgroundImage(
+      Object.hasOwn(updates, 'terminalBackgroundImage')
+        ? updates.terminalBackgroundImage
+        : base.terminalBackgroundImage
+    ),
+    terminalBackgroundImageOpacity: normalizeTerminalBackgroundImageOpacity(
+      Object.hasOwn(updates, 'terminalBackgroundImageOpacity')
+        ? updates.terminalBackgroundImageOpacity
+        : base.terminalBackgroundImageOpacity
+    ),
+    terminalBackgroundImageFit: normalizeTerminalBackgroundImageFit(
+      Object.hasOwn(updates, 'terminalBackgroundImageFit')
+        ? updates.terminalBackgroundImageFit
+        : base.terminalBackgroundImageFit
     ),
     nativeChatAppearance: normalizeNativeChatAppearanceSettings(
       Object.hasOwn(updates, 'nativeChatAppearance')
