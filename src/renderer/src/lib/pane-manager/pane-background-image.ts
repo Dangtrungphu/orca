@@ -3,6 +3,7 @@ import {
   DEFAULT_TERMINAL_BACKGROUND_IMAGE_OPACITY,
   resolveTerminalBackgroundImageCss
 } from '../../../../shared/terminal-background-image'
+import { resolvePaneBackgroundImageUrl } from './pane-background-image-url'
 
 export const PANE_BACKGROUND_IMAGE_CLASS = 'pane-background-image-host'
 
@@ -21,7 +22,10 @@ export function applyRootBackgroundImage(root: HTMLElement, styleOptions: PaneSt
   }
   const css = resolveTerminalBackgroundImageCss(styleOptions.backgroundImageFit)
   root.classList.add(PANE_BACKGROUND_IMAGE_CLASS)
-  root.style.setProperty('--pane-background-image', `url("${image}")`)
+  root.style.setProperty(
+    '--pane-background-image',
+    `url("${resolvePaneBackgroundImageUrl(image)}")`
+  )
   root.style.setProperty(
     '--pane-background-image-opacity',
     String(styleOptions.backgroundImageOpacity ?? DEFAULT_TERMINAL_BACKGROUND_IMAGE_OPACITY)
