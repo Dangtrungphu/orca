@@ -5,12 +5,12 @@ import {
   MAX_TERMINAL_BACKGROUND_IMAGE_SOURCE_BYTES,
   MAX_TERMINAL_BACKGROUND_IMAGE_UPLOAD_BYTES,
   TERMINAL_BACKGROUND_IMAGE_DOWNSCALE_JPEG_QUALITY,
-  TERMINAL_BACKGROUND_IMAGE_DOWNSCALE_MAX_EDGE,
+  TERMINAL_BACKGROUND_IMAGE_DOWNSCALE_MAX_EDGES,
   TERMINAL_BACKGROUND_IMAGE_MIME_TYPES
 } from '../../shared/terminal-background-image'
-import { encodeTerminalBackgroundImageJpeg } from '../host/electron-terminal-background-image-jpeg'
+import { encodeTerminalBackgroundImage } from '../host/electron-terminal-background-image-encode'
 
-/** Native dialog → inline data URL; a pick over the inline cap is downscaled to a JPEG rather than refused. */
+/** Native dialog → inline data URL; a pick over the inline cap is downscaled rather than refused. */
 export async function pickTerminalBackgroundImage(): Promise<{
   dataUrl: string
   fileName: string
@@ -42,16 +42,16 @@ export async function pickTerminalBackgroundImage(): Promise<{
     }
   }
 
-  const jpeg = encodeTerminalBackgroundImageJpeg(
-    buffer,
-    TERMINAL_BACKGROUND_IMAGE_DOWNSCALE_MAX_EDGE,
-    TERMINAL_BACKGROUND_IMAGE_DOWNSCALE_JPEG_QUALITY
-  )
-  if (!jpeg || jpeg.byteLength > MAX_TERMINAL_BACKGROUND_IMAGE_UPLOAD_BYTES) {
+  const encoded = encodeTerminalBackgroundImage(buffer, {
+    maxEdges: TERMINAL_BACKGROUND_IMAGE_DOWNSCALE_MAX_EDGES,
+    jpegQuality: TERMINAL_BACKGROUND_IMAGE_DOWNSCALE_JPEG_QUALITY,
+    maxBytes: MAX_TERMINAL_BACKGROUND_IMAGE_UPLOAD_BYTES
+  })
+  if (!encoded) {
     throw new Error('Terminal background image is too large and could not be downscaled.')
   }
   return {
-    dataUrl: `data:image/jpeg;base64,${Buffer.from(jpeg).toString('base64')}`,
+    dataUrl: `data:${encoded.mimeType};base64,${Buffer.from(encoded.bytes).toString('base64')}`,
     fileName: basename(filePath)
   }
 }

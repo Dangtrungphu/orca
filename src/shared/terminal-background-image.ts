@@ -17,9 +17,9 @@ export const DEFAULT_TERMINAL_BACKGROUND_IMAGE_FIT: TerminalBackgroundImageFit =
 export const MAX_TERMINAL_BACKGROUND_IMAGE_UPLOAD_BYTES = 4 * 1024 * 1024
 export const MAX_TERMINAL_BACKGROUND_IMAGE_DATA_URL_LENGTH = 6 * 1024 * 1024
 // Why: desktop wallpapers routinely exceed the inline cap, so oversized picks are re-encoded
-// to a JPEG that still covers a 1440p pane instead of being refused.
+// (largest edge first) instead of being refused.
 export const MAX_TERMINAL_BACKGROUND_IMAGE_SOURCE_BYTES = 64 * 1024 * 1024
-export const TERMINAL_BACKGROUND_IMAGE_DOWNSCALE_MAX_EDGE = 2560
+export const TERMINAL_BACKGROUND_IMAGE_DOWNSCALE_MAX_EDGES: readonly number[] = [2560, 1920, 1280]
 export const TERMINAL_BACKGROUND_IMAGE_DOWNSCALE_JPEG_QUALITY = 88
 
 export const TERMINAL_BACKGROUND_IMAGE_MIME_TYPES: Record<string, string> = {

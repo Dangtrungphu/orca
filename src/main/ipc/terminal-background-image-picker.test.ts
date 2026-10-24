@@ -9,8 +9,8 @@ const { showOpenDialogMock, statMock, readFileMock, encodeMock } = vi.hoisted(()
 
 vi.mock('electron', () => ({ dialog: { showOpenDialog: showOpenDialogMock } }))
 vi.mock('node:fs/promises', () => ({ stat: statMock, readFile: readFileMock }))
-vi.mock('../host/electron-terminal-background-image-jpeg', () => ({
-  encodeTerminalBackgroundImageJpeg: encodeMock
+vi.mock('../host/electron-terminal-background-image-encode', () => ({
+  encodeTerminalBackgroundImage: encodeMock
 }))
 
 import { pickTerminalBackgroundImage } from './terminal-background-image-picker'
@@ -18,7 +18,7 @@ import {
   MAX_TERMINAL_BACKGROUND_IMAGE_SOURCE_BYTES,
   MAX_TERMINAL_BACKGROUND_IMAGE_UPLOAD_BYTES,
   TERMINAL_BACKGROUND_IMAGE_DOWNSCALE_JPEG_QUALITY,
-  TERMINAL_BACKGROUND_IMAGE_DOWNSCALE_MAX_EDGE
+  TERMINAL_BACKGROUND_IMAGE_DOWNSCALE_MAX_EDGES
 } from '../../shared/terminal-background-image'
 
 function pick(filePath: string, size: number): void {
@@ -47,19 +47,19 @@ describe('pickTerminalBackgroundImage', () => {
     expect(encodeMock).not.toHaveBeenCalled()
   })
 
-  it('downscales an image over the cap to a JPEG instead of refusing it', async () => {
+  it('downscales an image over the cap instead of refusing it, keeping the encoder MIME type', async () => {
     pick('/pics/wall.png', MAX_TERMINAL_BACKGROUND_IMAGE_UPLOAD_BYTES + 1)
-    encodeMock.mockReturnValue(Buffer.from([1, 2, 3]))
+    encodeMock.mockReturnValue({ bytes: Buffer.from([1, 2, 3]), mimeType: 'image/png' })
 
     await expect(pickTerminalBackgroundImage()).resolves.toEqual({
-      dataUrl: `data:image/jpeg;base64,${Buffer.from([1, 2, 3]).toString('base64')}`,
+      dataUrl: `data:image/png;base64,${Buffer.from([1, 2, 3]).toString('base64')}`,
       fileName: 'wall.png'
     })
-    expect(encodeMock).toHaveBeenCalledWith(
-      expect.any(Buffer),
-      TERMINAL_BACKGROUND_IMAGE_DOWNSCALE_MAX_EDGE,
-      TERMINAL_BACKGROUND_IMAGE_DOWNSCALE_JPEG_QUALITY
-    )
+    expect(encodeMock).toHaveBeenCalledWith(expect.any(Buffer), {
+      maxEdges: TERMINAL_BACKGROUND_IMAGE_DOWNSCALE_MAX_EDGES,
+      jpegQuality: TERMINAL_BACKGROUND_IMAGE_DOWNSCALE_JPEG_QUALITY,
+      maxBytes: MAX_TERMINAL_BACKGROUND_IMAGE_UPLOAD_BYTES
+    })
   })
 
   it('refuses an oversized image the decoder cannot read', async () => {
