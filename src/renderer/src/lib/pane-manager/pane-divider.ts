@@ -1,5 +1,6 @@
 import type { PaneStyleOptions, ManagedPaneInternal } from './pane-manager-types'
 import { attachDividerDrag, disposeDividerDrag, type DividerCallbacks } from './pane-divider-drag'
+import { applyRootBackgroundImage } from './pane-background-image'
 export { createDividerFlexFrameScheduler } from './pane-divider-drag'
 
 // ---------------------------------------------------------------------------
@@ -97,4 +98,5 @@ export function applyRootBackground(root: HTMLElement, styleOptions: PaneStyleOp
   if (styleOptions.paddingY !== undefined) {
     root.style.setProperty('--pane-padding-y', `${styleOptions.paddingY}px`)
   }
+  applyRootBackgroundImage(root, styleOptions)
 }

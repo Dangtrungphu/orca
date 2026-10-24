@@ -22,10 +22,7 @@ import { sanitizeNetworkSettings } from './network-settings-sanitization'
 import { normalizeAppIconId } from '../../shared/app-icon'
 import { normalizeUiLanguage } from '../../shared/ui-language'
 import { applyAppIcon } from '../app-icon'
-import { normalizeTerminalCustomThemes } from '../../shared/terminal-custom-themes'
-import { sanitizeTerminalBackgroundImageSettings } from '../../shared/terminal-background-image'
-import { normalizeDesktopTerminalScrollbackRows } from '../../shared/terminal-scrollback-policy'
-import { normalizeTerminalLineHeight } from '../../shared/terminal-line-height-settings'
+import { sanitizeTerminalSettings } from './terminal-settings-sanitization'
 import { prepareLocalWorktreeRootsForRepos } from '../worktree-root-preparation'
 import { scheduleCurrentWorktreeBaseDirectoryWatcherSync } from './worktree-base-directory-watcher'
 import { applyPRBotAuthorOverride } from '../../shared/pr-bot-author-overrides'
@@ -163,18 +160,7 @@ export function registerSettingsHandlers(
     if ('aiVaultSearch' in args) {
       sanitizedArgs.aiVaultSearch = resolveAiVaultSearchSettings(args)
     }
-    if ('terminalCustomThemes' in args) {
-      sanitizedArgs.terminalCustomThemes = normalizeTerminalCustomThemes(args.terminalCustomThemes)
-    }
-    sanitizeTerminalBackgroundImageSettings(args, sanitizedArgs)
-    if ('terminalScrollbackRows' in args) {
-      sanitizedArgs.terminalScrollbackRows = normalizeDesktopTerminalScrollbackRows(
-        args.terminalScrollbackRows
-      )
-    }
-    if ('terminalLineHeight' in args) {
-      sanitizedArgs.terminalLineHeight = normalizeTerminalLineHeight(args.terminalLineHeight)
-    }
+    sanitizeTerminalSettings(args, sanitizedArgs)
     if ('uiLanguage' in args) {
       sanitizedArgs.uiLanguage = normalizeUiLanguage(args.uiLanguage)
     }
