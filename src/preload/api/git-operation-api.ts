@@ -47,6 +47,12 @@ export type GitOperationApi = {
     message: string
     connectionId?: string
   }) => Promise<{ success: boolean; error?: string }>
+  /** Soft-resets HEAD to its first parent, only if HEAD is still `expectedHead`. */
+  undoLastCommit: (args: {
+    worktreePath: string
+    expectedHead: string
+    connectionId?: string
+  }) => Promise<void>
   generateCommitMessage: (args: {
     worktreePath: string
     /** Raw (unstripped) worktree meta key; validated against worktreePath in main. */

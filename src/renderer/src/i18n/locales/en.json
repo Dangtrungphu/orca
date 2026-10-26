@@ -13845,7 +13845,13 @@
             "entryDiscardFailed": "Failed to discard “{{value0}}”",
             "entryDeleteFailed": "Failed to delete “{{value0}}”",
             "entryFailedInWorkspace": "{{value0}} in {{value1}}",
-            "diffCommentNotesCopyFailed": "Failed to copy notes"
+            "diffCommentNotesCopyFailed": "Failed to copy notes",
+            "c6a604d42c": "Undo a pushed commit?",
+            "cf108e6aca": "This commit is already on {{value0}}. Undoing it rewrites the branch history, so the next push needs force-with-lease. Its changes stay staged.",
+            "81caf07dae": "Undo Commit",
+            "2205b03ff0": "Commit undone",
+            "cbcb2ed57e": "Its changes are staged.",
+            "2d4ee01e3f": "Undo commit failed"
           },
           "SourceControlAgentActionDialog": {
             "8e856842d1": "Could not start the selected agent.",
@@ -14696,7 +14702,8 @@
             "7b1c4e9a02": "Open commit in browser",
             "8c2d5fab13": "Copy commit hash",
             "9d3e60bc24": "Copy commit message",
-            "ae4f71cd35": "Explain changes"
+            "ae4f71cd35": "Explain changes",
+            "6538d8536d": "Undo Commit"
           },
           "pull": {
             "policy": {

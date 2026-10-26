@@ -31,6 +31,7 @@ export function SourceControlPanelContent(props: SourceControlPanelReadyProps) {
     handleAbortOperationForConflict,
     handleCommitAction,
     handleContextMenu,
+    handleUndoCommit,
     handleOpenDiff,
     handleResolveConflictsWithAI,
     handleSelect,
@@ -221,7 +222,11 @@ export function SourceControlPanelContent(props: SourceControlPanelReadyProps) {
             onOpenCommit={(item) => void openHistoryCommitDiff(item)}
             onLoadCommitFiles={loadCommitFiles}
             onOpenCommitFile={openCommitFile}
-            onCommitAction={handleCommitAction}
+            onCommitAction={(action, item) =>
+              action === 'undo-commit'
+                ? void handleUndoCommit(item, gitHistoryState.result)
+                : handleCommitAction(action, item)
+            }
           />
         </div>
       )}

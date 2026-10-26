@@ -1,5 +1,5 @@
 import type React from 'react'
-import { Copy, Globe, Hash, Sparkles } from 'lucide-react'
+import { Copy, Globe, Hash, Sparkles, Undo2 } from 'lucide-react'
 import {
   ContextMenuContent,
   ContextMenuItem,
@@ -10,13 +10,21 @@ import type { GitHistoryItem } from '../../../../../../shared/git-history'
 import { useAppStore } from '@/store'
 import { getClientCreationActionPolicy } from '@/lib/client-creation-action-policy'
 
-export type GitHistoryCommitAction = 'open-remote' | 'copy-hash' | 'copy-message' | 'explain'
+export type GitHistoryCommitAction =
+  | 'undo-commit'
+  | 'open-remote'
+  | 'copy-hash'
+  | 'copy-message'
+  | 'explain'
 
 export function GitHistoryCommitContextMenu({
   item,
+  canUndo = false,
   onAction
 }: {
   item: GitHistoryItem
+  /** Only the HEAD commit can be undone, matching VS Code. */
+  canUndo?: boolean
   onAction: (action: GitHistoryCommitAction, item: GitHistoryItem) => void
 }): React.JSX.Element {
   const managedBrowserCreationEnabled = useAppStore(
@@ -26,6 +34,18 @@ export function GitHistoryCommitContextMenu({
   )
   return (
     <ContextMenuContent className="w-56">
+      {canUndo ? (
+        <>
+          <ContextMenuItem onSelect={() => onAction('undo-commit', item)}>
+            <Undo2 className="size-3.5" />
+            {translate(
+              'auto.components.right.sidebar.GitHistoryCommitContextMenu.6538d8536d',
+              'Undo Commit'
+            )}
+          </ContextMenuItem>
+          <ContextMenuSeparator />
+        </>
+      ) : null}
       {managedBrowserCreationEnabled ? (
         <ContextMenuItem onSelect={() => onAction('open-remote', item)}>
           <Globe className="size-3.5" />

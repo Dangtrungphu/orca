@@ -1,5 +1,6 @@
 import { ipcMain } from 'electron'
 import { commitChanges } from '../../git/status'
+import { isCommitOid, undoLastCommit } from '../../git/source-control/undo-last-commit'
 import { resolveRegisteredWorktreePath } from '../registered-worktree-roots-cache'
 import { getLocalGitOptionsForRegisteredWorktree } from '../local-worktree-runtime-options'
 import type { FilesystemHandlerContext } from './filesystem-handler-context'
@@ -26,6 +27,29 @@ export function registerFilesystemGitCommitHandlers(context: FilesystemHandlerCo
         worktreePath
       )
       return commitChanges(worktreePath, args.message, {
+        ...gitOptions,
+        admissionTier: 'interactive'
+      })
+    }
+  )
+
+  ipcMain.handle(
+    'git:undoLastCommit',
+    async (
+      _event,
+      args: { worktreePath: string; expectedHead: string; connectionId?: string }
+    ): Promise<void> => {
+      if (!isCommitOid(args.expectedHead)) {
+        throw new Error('Undo commit needs the full id of the commit to undo')
+      }
+      requireReachableGitRoute(getConnectionExecutionHostId(args.connectionId))
+      const worktreePath = await resolveRegisteredWorktreePath(args.worktreePath, store)
+      const gitOptions = getLocalGitOptionsForRegisteredWorktree(
+        store,
+        args.worktreePath,
+        worktreePath
+      )
+      await undoLastCommit(worktreePath, args.expectedHead, {
         ...gitOptions,
         admissionTier: 'interactive'
       })

@@ -225,6 +225,10 @@ export function createGitApi(): NonNullable<Partial<PreloadApi>['git']> {
         message
       })
     },
+    // Why: undo commit has no runtime RPC yet, so the paired web client cannot run it.
+    undoLastCommit: async () => {
+      throw new Error('Undo commit is not available in the web client yet.')
+    },
     generateCommitMessage: async () => ({
       success: false,
       error: translate(

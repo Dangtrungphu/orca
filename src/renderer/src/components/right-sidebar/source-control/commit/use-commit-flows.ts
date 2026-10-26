@@ -2,6 +2,7 @@ import { useCallback } from 'react'
 import type { SourceControlPanelFoundation } from '../panel/use-panel-foundation'
 import { useSourceControlCreatePrIntentCommitMessage } from '../review/use-create-pr-intent-commit-message'
 import { useSourceControlConflictAbort } from '../sync/use-conflict-abort'
+import { useSourceControlUndoCommit } from '../sync/use-undo-commit'
 import { useSourceControlRemoteActionRunner } from '../sync/use-remote-action-runner'
 import { useSourceControlCommitAction } from './use-commit-action'
 import { useSourceControlCommitMessageGeneration } from './use-commit-message-generation'
@@ -143,6 +144,14 @@ export function useSourceControlCommitFlows(foundation: SourceControlPanelFounda
     syncBranch,
     worktreePath
   })
+  const undoCommit = useSourceControlUndoCommit({
+    activeRepoTarget,
+    activeWorktreeId,
+    refreshActiveGitStatusAfterMutation,
+    refreshBranchCompareRef,
+    refreshGitHistoryRef,
+    worktreePath
+  })
   const conflictAbort = useSourceControlConflictAbort({
     activeRepoTarget,
     activeWorktreeId,
@@ -161,7 +170,8 @@ export function useSourceControlCommitFlows(foundation: SourceControlPanelFounda
     ...commitMessageGeneration,
     ...createPrIntentCommitMessage,
     ...remoteActionRunner,
-    ...conflictAbort
+    ...conflictAbort,
+    ...undoCommit
   }
 }
 

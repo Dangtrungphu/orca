@@ -374,7 +374,11 @@ export function GitHistoryPanel({
                 {onCommitAction && !isBoundaryNode ? (
                   <ContextMenu>
                     <ContextMenuTrigger asChild>{row}</ContextMenuTrigger>
-                    <GitHistoryCommitContextMenu item={item} onAction={onCommitAction} />
+                    <GitHistoryCommitContextMenu
+                      item={item}
+                      canUndo={viewModel.kind === 'HEAD'}
+                      onAction={onCommitAction}
+                    />
                   </ContextMenu>
                 ) : (
                   row
