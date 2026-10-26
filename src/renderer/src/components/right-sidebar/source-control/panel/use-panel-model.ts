@@ -10,6 +10,7 @@ import { useSourceControlActionModel } from '../review/use-action-model'
 import { useSourceControlCreatePrIntentFlows } from '../review/use-create-pr-intent-flows'
 import { useSourceControlReviewFlows } from '../review/use-review-flows'
 import { useSourceControlUpstreamStatusFetch } from '../sync/use-upstream-status-fetch'
+import { useSourceControlAutoFetch } from '../sync/use-auto-fetch'
 import { useSourceControlPanelFoundation } from './use-panel-foundation'
 
 /**
@@ -140,6 +141,16 @@ export function useSourceControlPanelModel() {
     activeWorktree,
     activeWorktreeId,
     fetchUpstreamStatus,
+    isBranchVisible,
+    isFolder,
+    worktreePath
+  })
+  useSourceControlAutoFetch({
+    activeRepoTarget,
+    activeWorktree,
+    activeWorktreeId,
+    fetchUpstreamStatus,
+    hasUpstream: remoteStatus?.hasUpstream === true,
     isBranchVisible,
     isFolder,
     worktreePath
