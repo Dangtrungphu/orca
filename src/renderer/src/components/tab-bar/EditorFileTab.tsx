@@ -8,7 +8,7 @@ import { getEditorDisplayLabel } from '@/components/editor/editor-labels'
 import { renameFileOnDisk } from '@/lib/rename-file'
 import { isImeCompositionKeyDown } from '@/lib/ime-composition-keyboard-event'
 import { detectLanguage } from '@/lib/language-detect'
-import { getFileTypeIcon } from '@/lib/file-type-icons'
+import { MaterialFileIcon } from '@/components/MaterialIcon'
 import { useRepoById, useWorktreeById } from '@/store/selectors'
 import { useAppStore } from '@/store'
 import { STATUS_COLORS, STATUS_LABELS } from '../right-sidebar/status-display'
@@ -77,7 +77,6 @@ export default function EditorFileTab({
 }): React.JSX.Element {
   const worktree = useWorktreeById(file.worktreeId)
   const repo = useRepoById(worktree?.repoId ?? null)
-  const FileIcon = getFileTypeIcon(file.filePath)
   // Why: no transform/transition/isDragging styling — the drag design is
   // that tabs stay visually anchored; only the blue insertion bar moves.
   const { attributes, listeners, setNodeRef } = useSortable({
@@ -92,7 +91,9 @@ export default function EditorFileTab({
   const isConflictReview = file.mode === 'conflict-review'
   const isCheckDetails = file.mode === 'check-details'
   const isMarkdownPreviewTab = file.mode === 'markdown-preview'
-  const HoverIcon = isConflictReview
+  // Why: plain file tabs show the Explorer's Material icon so a file reads the same in both
+  // places; mode tabs (conflict review, checks, diff, preview) keep their mode glyph.
+  const ModeIcon = isConflictReview
     ? ShieldAlert
     : isCheckDetails
       ? ListChecks
@@ -100,7 +101,7 @@ export default function EditorFileTab({
         ? GitCompareArrows
         : isMarkdownPreviewTab
           ? Eye
-          : FileIcon
+          : null
   // Why: only deleted/renamed mean the file is gone from its path, which is
   // what strikethrough conveys. 'changed' keeps a normal label — its surface
   // is the changed-on-disk banner inside the editor.
@@ -285,10 +286,12 @@ export default function EditorFileTab({
         <Eye
           className={`w-3.5 h-3.5 mr-1.5 shrink-0 ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}
         />
-      ) : (
-        createElement(HoverIcon, {
+      ) : ModeIcon ? (
+        createElement(ModeIcon, {
           className: `w-3 h-3 mr-1 shrink-0 ${isActive ? 'text-foreground' : 'text-muted-foreground'}`
         })
+      ) : (
+        <MaterialFileIcon filePath={file.filePath} className="mr-1.5" />
       )}
       {isPinned && <Pin className="mr-1 size-3 shrink-0 text-muted-foreground" aria-hidden />}
       <span className="mr-1 flex min-w-0 flex-1 items-baseline gap-1">
@@ -401,7 +404,13 @@ export default function EditorFileTab({
           <TabHoverCard
             title={tabLabel}
             programName={translate('tabHoverCard.editor', 'Editor')}
-            icon={createElement(HoverIcon, { className: 'size-4' })}
+            icon={
+              ModeIcon ? (
+                createElement(ModeIcon, { className: 'size-4' })
+              ) : (
+                <MaterialFileIcon filePath={file.filePath} />
+              )
+            }
             description={file.relativePath}
           >
             {tabRoot}
