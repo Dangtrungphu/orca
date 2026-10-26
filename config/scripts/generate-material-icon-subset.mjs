@@ -126,7 +126,9 @@ deployment ci .circleci mail email emails security auth admin client server back
 electron main renderer preload src-tauri features feature contexts context providers provider stories .storybook
 benchmarks benchmark examples example demo demos sample samples snippets content contents data datasets json audio
 video videos media sounds animations svg python go rust java kotlin php ruby typescript javascript prd notes report
-reports`.split(/\s+/)
+reports _doc _docs _document .agent .agents .devcontainer env envs environment environments .cursor coverage nginx
+upload uploads backup backups storage certs certificates secrets keys archive helm terraform workflows cypress
+playwright sql .windsurf`.split(/\s+/)
 
 // Why: VS Code falls back to the language id for extensions the theme does not list itself.
 const LANGUAGE_BY_EXTENSION = {
@@ -204,6 +206,35 @@ for (const name of FOLDER_NAMES) {
     folderNames[name] = manifest.folderNames[name]
     folderNamesExpanded[name] =
       manifest.folderNamesExpanded[name] ?? `${manifest.folderNames[name]}-open`
+  }
+}
+
+// Why: every other theme entry whose icon is already shipped costs only a table row, so take them all;
+// VS Code shows those icons, and this keeps the SVG subset bounded by the curated lists above.
+const shippedIcons = new Set([
+  manifest.file,
+  manifest.folder,
+  manifest.folderExpanded,
+  ...Object.values(fileNames),
+  ...Object.values(fileExtensions),
+  ...Object.values(folderNames),
+  ...Object.values(folderNamesExpanded)
+])
+for (const [name, icon] of Object.entries(manifest.fileNames)) {
+  if (!fileNames[name] && shippedIcons.has(icon)) {
+    fileNames[name] = icon
+  }
+}
+for (const [ext, icon] of Object.entries(manifest.fileExtensions)) {
+  if (!fileExtensions[ext] && shippedIcons.has(icon)) {
+    fileExtensions[ext] = icon
+  }
+}
+for (const [name, icon] of Object.entries(manifest.folderNames)) {
+  const expanded = manifest.folderNamesExpanded[name] ?? `${icon}-open`
+  if (!folderNames[name] && shippedIcons.has(icon) && shippedIcons.has(expanded)) {
+    folderNames[name] = icon
+    folderNamesExpanded[name] = expanded
   }
 }
 
