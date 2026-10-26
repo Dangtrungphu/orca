@@ -1,6 +1,6 @@
 import React from 'react'
 import { MessageSquare } from 'lucide-react'
-import { FileTypeIcon } from '@/components/FileTypeIcon'
+import { MaterialFileIcon } from '@/components/MaterialIcon'
 import { basename, dirname, joinPath } from '@/lib/path'
 import { WORKSPACE_FILE_PATH_MIME } from '@/lib/workspace-file-drag'
 import { writeWorkspaceFileDragSourceForWorkspace } from '@/lib/workspace-file-drag-source'
@@ -62,11 +62,7 @@ export function BranchEntryRow({
         onClick={(e) => onOpen(e)}
         onDoubleClick={(e) => onOpen(toPermanentSourceControlRowOpenEvent(e))}
       >
-        {React.createElement(FileTypeIcon, {
-          filePath: entry.path,
-          className: 'size-3.5 shrink-0',
-          style: { color: STATUS_COLORS[entry.status] }
-        })}
+        <MaterialFileIcon filePath={entry.path} />
         <span className="min-w-0 flex-1 truncate text-xs">
           <span className="text-foreground">{fileName}</span>
           {showPathHint && dirPath && (
