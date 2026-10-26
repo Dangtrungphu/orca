@@ -3,6 +3,7 @@ import { SourceControlHeaderToolbar } from './header-toolbar'
 import { SourceControlNotesShelf } from '../notes/notes-shelf'
 import { SourceControlPanelContent } from './panel-content'
 import { SourceControlPanelDialogs } from './panel-dialogs'
+import { SourceControlUpstreamSyncButton } from './upstream-sync-button'
 import type { SourceControlPanelReadyProps } from './panel-props'
 
 /** The panel chrome: toolbar, notes shelf, the scrolling file surface, bulk bar and dialog layer. */
@@ -12,6 +13,7 @@ export function SourceControlPanelReady(props: SourceControlPanelReadyProps) {
     activeGroupId,
     activeWorktreeId,
     branchLineTotal,
+    branchName,
     branchSummary,
     bulkStagePaths,
     bulkUnstagePaths,
@@ -28,6 +30,7 @@ export function SourceControlPanelReady(props: SourceControlPanelReadyProps) {
     handleBulkStage,
     handleBulkUnstage,
     handleCopyDiffComments,
+    handleActionInvoke,
     handleCreatePrHeaderClick,
     handleOpenComment,
     handleRelinkSuppressedGitHubPR,
@@ -37,10 +40,13 @@ export function SourceControlPanelReady(props: SourceControlPanelReadyProps) {
     isCreatePrIntentInFlight,
     isCreatingPr,
     isExecutingBulk,
+    isRemoteOperationActive,
     manualReviewUrl,
     openHostedReviewInChecks,
     prGenerating,
     refreshBranchCompare,
+    remoteStatus,
+    remoteStatusForActions,
     selectedKeys,
     setBaseRefDialogOpen,
     setDiffCommentsExpanded,
@@ -90,6 +96,14 @@ export function SourceControlPanelReady(props: SourceControlPanelReadyProps) {
           compareBaseRef={compareBaseRef}
           headDisplay={gitIdentityDisplay}
           manualReviewUrl={manualReviewUrl}
+          upstreamSyncControl={
+            <SourceControlUpstreamSyncButton
+              remoteStatus={remoteStatusForActions ?? remoteStatus}
+              hasBranch={branchName.length > 0}
+              busy={isRemoteOperationActive}
+              onAction={handleActionInvoke}
+            />
+          }
         />
 
         {/* Why: hidden when count is 0 — notes are created from the diff view, so an empty Notes shelf here is pure chrome. */}

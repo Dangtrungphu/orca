@@ -42,6 +42,8 @@ type SourceControlHeaderToolbarProps = {
   headDisplay?: WorktreeGitIdentityDisplay | null
   manualReviewUrl?: string | null
   branchLineTotal?: GitBranchLineTotal | null
+  /** Incoming/outgoing sync control, pinned beside the filter like VS Code's sync button. */
+  upstreamSyncControl?: React.ReactNode
 }
 
 function HostedReviewToolbarLink({
@@ -163,7 +165,8 @@ export function SourceControlHeaderToolbar({
   compareBaseRef,
   headDisplay = null,
   manualReviewUrl,
-  branchLineTotal
+  branchLineTotal,
+  upstreamSyncControl
 }: SourceControlHeaderToolbarProps): React.JSX.Element {
   const filterInputRef = useRef<HTMLInputElement>(null)
   const normalizedFilter = filterQuery.trim()
@@ -238,6 +241,7 @@ export function SourceControlHeaderToolbar({
               // Why: keep filter/overflow pinned right without stretching Create PR.
               <span className="min-w-0 flex-1" aria-hidden="true" />
             ) : null}
+            {upstreamSyncControl}
             <button
               type="button"
               data-testid="source-control-filter-toggle"

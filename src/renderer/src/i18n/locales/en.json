@@ -13851,7 +13851,11 @@
             "81caf07dae": "Undo Commit",
             "2205b03ff0": "Commit undone",
             "cbcb2ed57e": "Its changes are staged.",
-            "2d4ee01e3f": "Undo commit failed"
+            "2d4ee01e3f": "Undo commit failed",
+            "5d0c9e7a31": "{{value0}} to pull and {{value1}} to push with {{value2}}. Click to sync.",
+            "a83f62c0d4": "{{value0}} incoming from {{value1}}. Click to pull.",
+            "e1b47f9a26": "{{value0}} waiting to push to {{value1}}. Click to push.",
+            "7c25d8b0e9": "In sync with {{value0}}. Click to fetch and check for new commits."
           },
           "SourceControlAgentActionDialog": {
             "8e856842d1": "Could not start the selected agent.",
