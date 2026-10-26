@@ -125,6 +125,46 @@ describe('prefersCtrlEnterLineFeedForPane', () => {
     ).toBe(true)
   })
 
+  it('falls back to the pane hook row for an idle Claude in a WSL pane', () => {
+    // WSL: no process evidence, and Claude's idle title names the task, not the agent.
+    const state = {
+      paneForegroundAgentByPaneKey: {},
+      agentStatusByPaneKey: { [PANE_KEY]: { agentType: 'claude' as const } }
+    }
+    const title = '✳ Thông báo khi mở ứng dụng'
+    expect(prefersCtrlEnterLineFeedForPane(state, PANE_KEY, title)).toBe(true)
+    expect(hasCtrlEnterCsiUAuthorityForPane(state, PANE_KEY, title)).toBe(false)
+    expect(prefersCtrlEnterLineFeedForPane(state, 'tab:other-pane', title)).toBe(false)
+  })
+
+  it('keeps hook rows from overriding the shell, another process, or granting CSI-u', () => {
+    const claudeHook = { [PANE_KEY]: { agentType: 'claude' as const } }
+    for (const foreground of [
+      { agent: null, shellForeground: true },
+      { agent: 'claude' as const, routingRevoked: true, shellForeground: false },
+      { agent: 'droid' as const, shellForeground: false }
+    ]) {
+      expect(
+        prefersCtrlEnterLineFeedForPane(
+          {
+            paneForegroundAgentByPaneKey: { [PANE_KEY]: foreground },
+            agentStatusByPaneKey: claudeHook
+          },
+          PANE_KEY
+        )
+      ).toBe(false)
+    }
+    expect(
+      hasCtrlEnterCsiUAuthorityForPane(
+        {
+          paneForegroundAgentByPaneKey: {},
+          agentStatusByPaneKey: { [PANE_KEY]: { agentType: 'droid' as const } }
+        },
+        PANE_KEY
+      )
+    ).toBe(false)
+  })
+
   it('stays off LF for the shell or for CSI-u consumers', () => {
     expect(
       prefersCtrlEnterLineFeedForPane(

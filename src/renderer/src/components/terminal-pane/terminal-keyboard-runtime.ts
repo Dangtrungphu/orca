@@ -197,8 +197,8 @@ export function createTerminalKeyboardRuntime(options: RuntimeOptions) {
       isLocalWindowsConptyPane() ? state.runtimePaneTitlesByTabId[tabId]?.[pane.id] : undefined
     )
   }
-  // Why the title for every pane: Claude Code runs in WSL panes too, where foreground routing may
-  // not be trusted yet; a committed "Claude Code" title is enough to pick the LF newline chord.
+  // Why the title and hook row for every pane: Claude Code runs in WSL panes too, where foreground
+  // routing never sees it; either signal is enough to pick the LF newline chord.
   const prefersActivePaneCtrlEnterLineFeed = (): boolean => {
     const manager = managerRef.current
     const pane = manager?.getActivePane() ?? manager?.getPanes()[0]
