@@ -132,7 +132,8 @@ export function useSourceControlPanelModel() {
     remoteStatusForActions,
     runCompoundCommitAction,
     runCreatePrIntent: createPrIntentFlows.runCreatePrIntent,
-    runRemoteAction
+    runRemoteAction,
+    stageAllBeforeCommit: actionModel.commitsAllChanges
   })
   useSourceControlUpstreamStatusFetch({
     activeRepoTarget,

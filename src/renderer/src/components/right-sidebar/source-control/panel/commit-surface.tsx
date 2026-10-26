@@ -42,6 +42,7 @@ export function SourceControlCommitSurface({
     handleGeneratePullRequestFieldsClick,
     handlePrimaryClick,
     hasPartiallyStagedChanges,
+    commitsAllChanges,
     hostedReviewCreateProvider,
     inFlightRemoteOpKind,
     isAbortingOperation,
@@ -153,6 +154,7 @@ export function SourceControlCommitSurface({
       isGenerating={isGenerating}
       generateError={generateError}
       stagedCount={grouped.staged.length}
+      commitsAllChanges={commitsAllChanges}
       hasPartiallyStagedChanges={hasPartiallyStagedChanges}
       hasUnresolvedConflicts={unresolvedConflicts.length > 0}
       isRemoteOperationActive={isRemoteOperationActive || isAbortingOperation}

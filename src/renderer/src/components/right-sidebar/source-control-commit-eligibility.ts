@@ -2,6 +2,8 @@ export const COMMIT_MESSAGE_REQUIRED_REASON = 'Enter a commit message to commit'
 
 export type CommitEligibilityInputs = {
   stagedCount: number
+  /** VS Code smart commit: nothing is staged, but Commit stages every change first. */
+  commitsAllChanges?: boolean
   hasPartiallyStagedChanges: boolean
   hasMessage: boolean
   hasUnresolvedConflicts: boolean
@@ -13,13 +15,17 @@ export type CommitEligibilityInputs = {
 export function resolveCommitDisabledReason(
   inputs: Pick<
     CommitEligibilityInputs,
-    'stagedCount' | 'hasPartiallyStagedChanges' | 'hasMessage' | 'hasUnresolvedConflicts'
+    | 'stagedCount'
+    | 'commitsAllChanges'
+    | 'hasPartiallyStagedChanges'
+    | 'hasMessage'
+    | 'hasUnresolvedConflicts'
   >
 ): string | null {
   if (inputs.hasUnresolvedConflicts) {
     return 'Resolve conflicts before committing'
   }
-  if (inputs.stagedCount === 0) {
+  if (inputs.stagedCount === 0 && !inputs.commitsAllChanges) {
     return 'Stage at least one file to commit'
   }
   if (!inputs.hasMessage) {

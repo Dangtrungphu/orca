@@ -156,9 +156,10 @@ export function useSourceControlBulkActions({
 
   // Why: a scope replaces the paths; a capped listing cannot name every change, so the host resolves them.
   const stagePaths = useCallback(
-    async (paths: readonly string[], scope?: GitStageWorktreeScope) => {
+    // Why: resolves false when nothing was staged, so smart commit never commits a stale index.
+    async (paths: readonly string[], scope?: GitStageWorktreeScope): Promise<boolean> => {
       if (!worktreePath || isExecutingBulk || (paths.length === 0 && !scope)) {
-        return
+        return false
       }
       setIsExecutingBulk(true)
       try {
@@ -174,8 +175,10 @@ export function useSourceControlBulkActions({
           : bulkStageRuntimeGitPaths(context, [...paths]))
         await refreshActiveGitStatusAfterMutation()
         clearSelection()
+        return true
       } catch (error) {
         reportBulkMutationFailure(error)
+        return false
       } finally {
         setIsExecutingBulk(false)
       }
@@ -191,14 +194,17 @@ export function useSourceControlBulkActions({
   )
 
   const handleStageAllPaths = useCallback(
-    (paths: readonly string[]) => stagePaths(paths),
+    async (paths: readonly string[]): Promise<void> => {
+      await stagePaths(paths)
+    },
     [stagePaths]
   )
 
   // Why: a capped listing holds only the first rows, so "all" must be resolved by the host.
   const handleStageSectionPaths = useCallback(
-    (sectionId: SourceControlDisplaySectionId, paths: readonly string[]) =>
-      stagePaths(paths, isStatusTruncated && sectionId === 'unstaged' ? 'all' : undefined),
+    async (sectionId: SourceControlDisplaySectionId, paths: readonly string[]): Promise<void> => {
+      await stagePaths(paths, isStatusTruncated && sectionId === 'unstaged' ? 'all' : undefined)
+    },
     [isStatusTruncated, stagePaths]
   )
 
@@ -239,16 +245,18 @@ export function useSourceControlBulkActions({
   )
 
   // Why: bypasses handleActionInvoke because that handler is typed to DropdownActionKind and 'stage' is intentionally not in the dropdown union.
-  const handleStageAllPrimary = useCallback(async (): Promise<void> => {
+  const handleStageAllPrimary = useCallback(async (): Promise<boolean> => {
     const filePaths = [
       ...getStageAllPaths(grouped.unstaged, 'unstaged'),
       ...getStageAllPaths(grouped.untracked, 'untracked')
     ]
-    await stagePaths(filePaths, isStatusTruncated ? 'all' : undefined)
+    return stagePaths(filePaths, isStatusTruncated ? 'all' : undefined)
   }, [grouped, isStatusTruncated, stagePaths])
 
   // Why: once the capped prefix is all staged, no row or primary action can reach the hidden rest.
-  const handleStageWorktreeChanges = useCallback(() => stagePaths([], 'all'), [stagePaths])
+  const handleStageWorktreeChanges = useCallback(async (): Promise<void> => {
+    await stagePaths([], 'all')
+  }, [stagePaths])
 
   return {
     isExecutingBulk,

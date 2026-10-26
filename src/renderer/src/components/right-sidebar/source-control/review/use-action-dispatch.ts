@@ -30,7 +30,8 @@ export function useSourceControlActionDispatch({
   remoteStatusForActions,
   runCompoundCommitAction,
   runCreatePrIntent,
-  runRemoteAction
+  runRemoteAction,
+  stageAllBeforeCommit
 }: {
   createPrHeaderAction: SourceControlActionModel['createPrHeaderAction']
   handleAbortMerge: SourceControlConflictAbort['handleAbortMerge']
@@ -47,7 +48,26 @@ export function useSourceControlActionDispatch({
   runCompoundCommitAction: SourceControlRemoteActionRunner['runCompoundCommitAction']
   runCreatePrIntent: () => Promise<void>
   runRemoteAction: SourceControlRemoteActionRunner['runRemoteAction']
+  /** VS Code smart commit: nothing is staged, so commit actions stage every change first. */
+  stageAllBeforeCommit: boolean
 }) {
+  // Why: the staged-count snapshot in handleCommit predates the staging, so skip it once staging
+  // succeeded; a failed stage (already toasted) must not commit whatever the index held.
+  const commitWithSmartStage = useCallback(
+    async (
+      commit: (options?: { skipStagedSnapshotCheck?: boolean }) => Promise<unknown>
+    ): Promise<void> => {
+      if (!stageAllBeforeCommit) {
+        await commit()
+        return
+      }
+      if (await handleStageAllPrimary()) {
+        await commit({ skipStagedSnapshotCheck: true })
+      }
+    },
+    [handleStageAllPrimary, stageAllBeforeCommit]
+  )
+
   // Dispatch primary + dropdown action kinds to their handlers.
   const handleActionInvoke = useCallback(
     (kind: DropdownActionKind): void => {
@@ -56,13 +76,13 @@ export function useSourceControlActionDispatch({
       }
       switch (kind) {
         case 'commit':
-          void handleCommit()
+          void commitWithSmartStage((options) => handleCommit(undefined, options))
           return
         case 'commit_push':
-          void runCompoundCommitAction('push')
+          void commitWithSmartStage((options) => runCompoundCommitAction('push', options))
           return
         case 'commit_sync':
-          void runCompoundCommitAction('sync')
+          void commitWithSmartStage((options) => runCompoundCommitAction('sync', options))
           return
         case 'abort_merge':
           void handleAbortMerge()
@@ -88,6 +108,7 @@ export function useSourceControlActionDispatch({
       }
     },
     [
+      commitWithSmartStage,
       handleCommit,
       handleCreatePullRequest,
       handleAbortMerge,

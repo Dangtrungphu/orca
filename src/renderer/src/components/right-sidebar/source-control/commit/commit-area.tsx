@@ -59,6 +59,7 @@ export function CommitArea({
   isGenerating,
   generateError,
   stagedCount,
+  commitsAllChanges = false,
   hasPartiallyStagedChanges,
   hasUnresolvedConflicts,
   isRemoteOperationActive,
@@ -112,6 +113,7 @@ export function CommitArea({
   const hasMessage = commitMessage.trim().length > 0
   const isCommitMessageDisabled = isCommitMessageFieldDisabled({
     stagedCount,
+    commitsAllChanges,
     hasPartiallyStagedChanges,
     hasMessage,
     hasUnresolvedConflicts,

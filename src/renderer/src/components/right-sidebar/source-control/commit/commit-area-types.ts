@@ -36,6 +36,8 @@ export type CommitAreaProps = {
   isGenerating: boolean
   generateError: string | null
   stagedCount: number
+  /** Nothing is staged and Commit will stage every change first (VS Code smart commit). */
+  commitsAllChanges?: boolean
   hasPartiallyStagedChanges: boolean
   hasUnresolvedConflicts: boolean
   isRemoteOperationActive: boolean

@@ -506,7 +506,8 @@ describe('SourceControl preview row opens', () => {
     expect(mocks.calls.bulkStageRuntimeGitPaths).not.toHaveBeenCalled()
   })
 
-  it('keeps the commit-area Stage All primary for changed submodule gitlinks', async () => {
+  // Fork: smart commit replaces the Stage All primary; the dispatcher stages before committing.
+  it('offers the smart-commit primary for changed submodule gitlinks', () => {
     resetState({
       gitStatusByWorktree: {
         [mocks.activeWorktree.id]: [
@@ -519,20 +520,13 @@ describe('SourceControl preview row opens', () => {
     })
     renderSourceControl()
 
-    const stageAllButton = [...container.querySelectorAll<HTMLButtonElement>('button')].find(
-      (button) => button.textContent?.trim() === 'Stage All'
-    )
-    expect(stageAllButton).toBeDefined()
-    expect(stageAllButton?.disabled).toBe(false)
-
-    await act(async () => {
-      stageAllButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-      await Promise.resolve()
-    })
-    expect(mocks.calls.bulkStageRuntimeGitPaths).toHaveBeenCalledWith(
-      expect.objectContaining({ worktreeId: mocks.activeWorktree.id, worktreePath: '/repo/wt' }),
-      ['packages/nested']
-    )
+    const buttons = [...container.querySelectorAll<HTMLButtonElement>('button')]
+    const commitButton = buttons.find((button) => button.textContent?.trim() === 'Commit')
+    expect(buttons.some((button) => button.textContent?.trim() === 'Stage All')).toBe(false)
+    expect(commitButton).toBeDefined()
+    // Why: the gitlink counts as committable, so only the empty message holds Commit back.
+    expect(commitButton?.disabled).toBe(true)
+    expect(container.querySelector('textarea')?.disabled).toBe(false)
   })
 
   it('passes preview=true when a plain branch row click opens a branch diff tab', () => {

@@ -3,7 +3,10 @@ import { translate } from '@/i18n/i18n'
 import type { GitBranchCompareSummary } from '../../../../../../shared/git-diff-compare-types'
 import { isStageableStatusEntry } from '../commit/discard-all-sequence'
 import { resolveDropdownItems } from '../../source-control-dropdown-items'
-import { resolveCommitAreaPrimaryAction } from '../../source-control-primary-action'
+import {
+  resolveCommitAreaPrimaryAction,
+  type PrimaryAction
+} from '../../source-control-primary-action'
 import { resolveCreatePrHeaderAction } from './primary-create-pr-intent-action'
 import { resolveVisibleCreatePrHeaderAction } from './create-pr-intent-state'
 import type { SourceControlEntryGroups } from '../listing/section-order'
@@ -83,32 +86,43 @@ export function useSourceControlActionModel({
     const unstagedPaths = new Set(grouped.unstaged.map((entry) => entry.path))
     return grouped.staged.some((entry) => unstagedPaths.has(entry.path))
   }, [grouped.staged, grouped.unstaged])
+  // Why: VS Code smart commit — with nothing staged, Commit takes every change, so the commit rungs
+  // count those as the commit set and the dispatcher stages them before committing.
+  const commitsAllChanges =
+    grouped.staged.length === 0 && hasStageableChanges && unresolvedConflictCount === 0
+  const commitStagedCount = commitsAllChanges
+    ? grouped.unstaged.length + grouped.untracked.length
+    : grouped.staged.length
 
   const primaryAction = useMemo(
     () =>
-      resolveCommitAreaPrimaryAction({
-        stagedCount: grouped.staged.length,
-        hasUnstagedChanges,
-        hasStageableChanges,
-        hasPartiallyStagedChanges,
-        hasMessage: commitMessage.trim().length > 0,
-        hasUnresolvedConflicts: unresolvedConflictCount > 0,
-        isCommitting,
-        isRemoteOperationActive: isRemoteOperationActive || isAbortingOperation,
-        upstreamStatus: remoteStatusForActions,
-        prState: hostedReviewStateForActions,
-        isPRStateLoading: isHostedReviewStateLoading,
-        inFlightRemoteOpKind,
-        hostedReviewCreation: createReviewEligibility,
-        branchCommitsAhead:
-          branchSummary?.status === 'ready' ? (branchSummary.commitsAhead ?? 0) : undefined,
-        hasCurrentBranch: Boolean(branchName),
-        canPushLinkedReviewWithoutUpstream: canUseHostedReviewPushTarget,
-        isPrIntentInFlight: isCreatePrIntentInFlight
-      }),
+      withCommitAllTitle(
+        commitsAllChanges,
+        resolveCommitAreaPrimaryAction({
+          stagedCount: commitStagedCount,
+          hasUnstagedChanges,
+          hasStageableChanges,
+          hasPartiallyStagedChanges,
+          hasMessage: commitMessage.trim().length > 0,
+          hasUnresolvedConflicts: unresolvedConflictCount > 0,
+          isCommitting,
+          isRemoteOperationActive: isRemoteOperationActive || isAbortingOperation,
+          upstreamStatus: remoteStatusForActions,
+          prState: hostedReviewStateForActions,
+          isPRStateLoading: isHostedReviewStateLoading,
+          inFlightRemoteOpKind,
+          hostedReviewCreation: createReviewEligibility,
+          branchCommitsAhead:
+            branchSummary?.status === 'ready' ? (branchSummary.commitsAhead ?? 0) : undefined,
+          hasCurrentBranch: Boolean(branchName),
+          canPushLinkedReviewWithoutUpstream: canUseHostedReviewPushTarget,
+          isPrIntentInFlight: isCreatePrIntentInFlight
+        })
+      ),
     [
       commitMessage,
-      grouped.staged.length,
+      commitsAllChanges,
+      commitStagedCount,
       hasStageableChanges,
       hasUnstagedChanges,
       hasPartiallyStagedChanges,
@@ -206,7 +220,7 @@ export function useSourceControlActionModel({
   const dropdownItems = useMemo(
     () =>
       resolveDropdownItems({
-        stagedCount: grouped.staged.length,
+        stagedCount: commitStagedCount,
         hasUnstagedChanges,
         hasStageableChanges,
         hasPartiallyStagedChanges,
@@ -229,7 +243,7 @@ export function useSourceControlActionModel({
       }),
     [
       commitMessage,
-      grouped.staged.length,
+      commitStagedCount,
       hasStageableChanges,
       hasUnstagedChanges,
       hasPartiallyStagedChanges,
@@ -254,6 +268,7 @@ export function useSourceControlActionModel({
     ]
   )
   return {
+    commitsAllChanges,
     hasPartiallyStagedChanges,
     primaryAction,
     createPrHeaderAction,
@@ -264,3 +279,16 @@ export function useSourceControlActionModel({
 }
 
 export type SourceControlActionModel = ReturnType<typeof useSourceControlActionModel>
+
+function withCommitAllTitle(commitsAllChanges: boolean, action: PrimaryAction): PrimaryAction {
+  if (!commitsAllChanges || action.kind !== 'commit' || action.disabled) {
+    return action
+  }
+  return {
+    ...action,
+    title: translate(
+      'auto.components.right.sidebar.SourceControl.3fa81c6e52',
+      'Stage all changes and commit'
+    )
+  }
+}

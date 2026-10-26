@@ -269,8 +269,11 @@ export function useSourceControlRemoteActionRunner({
 
   // Why: commit first and run the follow-up remote op only if handleCommit succeeded, so we never push a commit the user didn't land.
   const runCompoundCommitAction = useCallback(
-    async (remoteKind: 'push' | 'sync'): Promise<void> => {
-      const ok = await handleCommit()
+    async (
+      remoteKind: 'push' | 'sync',
+      commitOptions?: { skipStagedSnapshotCheck?: boolean }
+    ): Promise<void> => {
+      const ok = await handleCommit(undefined, commitOptions)
       if (!ok) {
         return
       }
