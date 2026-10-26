@@ -33,16 +33,16 @@ import { SettingsSegmentedControl, SettingsSubsectionHeader } from './SettingsFo
 import { translate } from '@/i18n/i18n'
 import { translateSearchKeyword } from './settings-search-keywords'
 
+const EMPTY_WSL_DISTROS: string[] = []
+
 type TerminalPaneProps = {
   settings: GlobalSettings
   updateSettings: (updates: Partial<GlobalSettings>) => void
   scrollbackMode: 'preset' | 'custom'
   setScrollbackMode: (mode: 'preset' | 'custom') => void
-  /** Deprecated: WSL selection now belongs to Project Runtime settings. */
+  /** Project terminals take WSL from Project Runtime; these feed the Default Shell's WSL pick. */
   wslAvailable?: boolean
-  /** Deprecated: WSL selection now belongs to Project Runtime settings. */
   wslDistros?: string[]
-  /** Deprecated: WSL selection now belongs to Project Runtime settings. */
   wslCapabilitiesLoading?: boolean
   /** Whether PowerShell 7+ (pwsh.exe) is installed on this Windows machine. */
   pwshAvailable?: boolean
@@ -59,6 +59,9 @@ export function TerminalPane({
   setScrollbackMode,
   pwshAvailable,
   gitBashAvailable = false,
+  wslAvailable = false,
+  wslDistros = EMPTY_WSL_DISTROS,
+  wslCapabilitiesLoading = false,
   isWindowsTerminalHost
 }: TerminalPaneProps): React.JSX.Element {
   const searchQuery = useAppStore((state) => state.settingsSearchQuery)
@@ -310,7 +313,11 @@ export function TerminalPane({
         key="windows-shell"
         updateSettings={updateSettings}
         windowsShell={windowsShell}
+        wslDistro={settings.terminalWindowsWslDistro ?? null}
         gitBashAvailable={gitBashAvailable}
+        wslAvailable={wslAvailable}
+        wslDistros={wslDistros}
+        wslCapabilitiesLoading={wslCapabilitiesLoading}
       />
     ) : null,
     matchesSettingsSearch(searchQuery, getTerminalRenderingSearchEntries()) ? (

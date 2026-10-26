@@ -8,11 +8,16 @@ import {
 import { SearchableSetting } from './SearchableSetting'
 import { translate } from '@/i18n/i18n'
 import { ShellIcon } from '../tab-bar/shell-icons'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 
 type TerminalWindowsShellSectionProps = {
   updateSettings: (updates: Partial<GlobalSettings>) => void
   windowsShell: string
+  wslDistro: string | null
   gitBashAvailable: boolean
+  wslAvailable: boolean
+  wslDistros: string[]
+  wslCapabilitiesLoading: boolean
 }
 
 function windowsShellLabel(shell: string, label: string): React.JSX.Element {
@@ -27,11 +32,28 @@ function windowsShellLabel(shell: string, label: string): React.JSX.Element {
 export function TerminalWindowsShellSection({
   updateSettings,
   windowsShell,
-  gitBashAvailable
+  wslDistro,
+  gitBashAvailable,
+  wslAvailable,
+  wslDistros,
+  wslCapabilitiesLoading
 }: TerminalWindowsShellSectionProps): React.JSX.Element {
   const showGitBashOption = gitBashAvailable || windowsShell === WINDOWS_GIT_BASH_SHELL
-  // Why: selecting WSL here would omit its required distro, but an existing WSL default must stay visible.
-  const showWslOption = windowsShell === 'wsl.exe'
+  // Fork: WSL is selectable again, always saved with a distro, so the floating workspace can open WSL.
+  const showWslOption = wslAvailable || windowsShell === 'wsl.exe'
+  const selectedWslDistro = wslDistro?.trim() || null
+  const nextWslDistro = selectedWslDistro ?? wslDistros[0] ?? null
+  const wslDistroOptions =
+    selectedWslDistro && !wslDistros.includes(selectedWslDistro)
+      ? [selectedWslDistro, ...wslDistros]
+      : wslDistros
+  const handleShellChange = (value: string): void => {
+    if (value === 'wsl.exe') {
+      updateSettings({ terminalWindowsShell: value, terminalWindowsWslDistro: nextWslDistro })
+      return
+    }
+    updateSettings({ terminalWindowsShell: value })
+  }
 
   return (
     <section key="windows-shell" className="space-y-3">
@@ -60,6 +82,10 @@ export function TerminalWindowsShellSection({
             'command prompt',
             'git bash',
             'bash.exe',
+            'wsl',
+            'linux',
+            'distro',
+            'ubuntu',
             'default'
           ]}
         >
@@ -80,7 +106,7 @@ export function TerminalWindowsShellSection({
                   'Default Shell'
                 )}
                 value={windowsShell}
-                onChange={(value) => updateSettings({ terminalWindowsShell: value })}
+                onChange={handleShellChange}
                 options={[
                   {
                     value: 'powershell.exe',
@@ -138,7 +164,7 @@ export function TerminalWindowsShellSection({
                             'auto.components.settings.TerminalPane.b637dd57a7',
                             'WSL'
                           ),
-                          disabled: true
+                          disabled: wslCapabilitiesLoading || !wslAvailable || !nextWslDistro
                         }
                       ]
                     : [])
@@ -146,6 +172,48 @@ export function TerminalWindowsShellSection({
               />
             }
           />
+          {windowsShell === 'wsl.exe' ? (
+            <SettingsRow
+              label={translate(
+                'auto.components.settings.TerminalPane.5642702c73',
+                'WSL Distribution'
+              )}
+              description={translate(
+                'auto.components.settings.TerminalPane.ff3b3fdde3',
+                'Distro for WSL terminals outside a project, such as the floating workspace. Projects keep their own runtime.'
+              )}
+              control={
+                <Select
+                  value={selectedWslDistro ?? ''}
+                  onValueChange={(value) => updateSettings({ terminalWindowsWslDistro: value })}
+                  disabled={wslCapabilitiesLoading || !wslAvailable}
+                >
+                  <SelectTrigger
+                    size="sm"
+                    className="w-full min-w-52"
+                    aria-label={translate(
+                      'auto.components.settings.TerminalPane.5642702c73',
+                      'WSL Distribution'
+                    )}
+                  >
+                    <SelectValue
+                      placeholder={translate(
+                        'auto.components.settings.TerminalPane.ec029d3e3f',
+                        'Select distro'
+                      )}
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {wslDistroOptions.map((distro) => (
+                      <SelectItem key={distro} value={distro}>
+                        {distro}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              }
+            />
+          ) : null}
         </SearchableSetting>
       </div>
     </section>

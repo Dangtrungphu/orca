@@ -70,6 +70,24 @@ vi.mock('../ui/separator', () => ({
   }
 }))
 
+vi.mock('../ui/select', () => ({
+  Select: function Select() {
+    return null
+  },
+  SelectContent: function SelectContent() {
+    return null
+  },
+  SelectItem: function SelectItem() {
+    return null
+  },
+  SelectTrigger: function SelectTrigger() {
+    return null
+  },
+  SelectValue: function SelectValue() {
+    return null
+  }
+}))
+
 vi.mock('../ui/toggle-group', () => ({
   ToggleGroup: function ToggleGroup() {
     return null
@@ -294,7 +312,8 @@ describe('TerminalPane PowerShell version setting', () => {
     expect(link?.props.href).toBe('https://github.com/PowerShell/PowerShell/releases/latest')
   })
 
-  it('does not show WSL as a Windows default shell option when available', () => {
+  // Fork: WSL is a Default Shell option again (saved with a distro), for the floating workspace.
+  it('shows WSL as a Windows default shell option when available', () => {
     const element = TerminalPane({
       settings: {
         terminalScrollbackRows: 5_000,
@@ -314,7 +333,8 @@ describe('TerminalPane PowerShell version setting', () => {
     const text = collectText(element)
     expect(text).toContain('PowerShell')
     expect(text).toContain('Command Prompt')
-    expect(text).not.toContain('WSL')
+    expect(text).toContain('WSL')
+    expect(text).not.toContain('Distro for WSL terminals')
   })
 
   it('shows Windows shell controls for a remote Windows host on a non-Windows client', () => {
@@ -338,7 +358,6 @@ describe('TerminalPane PowerShell version setting', () => {
     const text = collectText(element)
     expect(text).toContain('Default shell for new terminal panes on Windows')
     expect(text).toContain('Command Prompt')
-    expect(text).not.toContain('WSL')
   })
 
   it('hides WSL as a Windows default shell option when unavailable', () => {
@@ -360,7 +379,7 @@ describe('TerminalPane PowerShell version setting', () => {
     expect(collectText(element)).not.toContain('WSL')
   })
 
-  it('shows a persisted WSL default without PowerShell or distro sub-settings', () => {
+  it('shows a persisted WSL default with its distro picker and no PowerShell sub-settings', () => {
     const element = TerminalPane({
       settings: {
         terminalScrollbackRows: 5_000,
@@ -384,10 +403,8 @@ describe('TerminalPane PowerShell version setting', () => {
     expect(text).toContain('WSL')
     expect(hasShellIconFor(element, 'wsl.exe')).toBe(true)
     expect(text).not.toContain('PowerShell Version')
-    expect(text).not.toContain('Choose which WSL distribution')
+    expect(text).toContain('Distro for WSL terminals outside a project')
     expect(text).not.toContain('Windows default')
-    expect(text).not.toContain('Ubuntu')
-    expect(text).not.toContain('Debian')
   })
 
   it('shows Git Bash as a Windows default shell option when bash.exe is detected', () => {

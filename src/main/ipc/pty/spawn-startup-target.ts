@@ -5,6 +5,7 @@ import {
   type LocalWindowsTerminalRuntimeOptions
 } from '../../../shared/local-windows-terminal-runtime'
 import type { ProjectExecutionRuntimeResolution } from '../../../shared/project-execution-runtime'
+import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../shared/constants'
 import type { StartupCwdFallback } from '../../../shared/startup-cwd-fallback'
 import type { TerminalStartupCwdMissingDirFallback } from '../../../shared/terminal-startup-cwd'
 import { isWslUncPath, toWindowsWslPath } from '../../../shared/wsl-paths'
@@ -20,6 +21,7 @@ import { normalizeWindowsTerminalCwd } from '../../providers/windows-shell-args'
 import { wslUncDirectoryExistsAsync } from '../../wsl'
 import { getCodexSelectionTargetForPty } from './host-env/codex-home'
 import { probeLocalStartupCwdDirectory } from './host-env/startup-cwd-directory-exists'
+import { resolveWslProfileHomeCwd } from './wsl-profile-home-cwd'
 
 // TEMPORARY (row 13b removes it): the window uses the renderer's runtime; the host reads the store.
 export type PtySpawnProjectRuntimeSource =
@@ -72,13 +74,21 @@ export async function resolvePtySpawnStartupTarget(
       args.shellOverride,
       process.env.COMSPEC || 'powershell.exe'
     )
-  const startup = args.preAdopted
+  const resolvedStartup = args.preAdopted
     ? {
         cwd: args.resolveStartupCwd(args.worktreeId, args.cwd),
         startupCwdFallback: undefined,
         correctStartupCwd: undefined
       }
     : await resolveStartupCwdWithFallback(args, terminalRuntimeOptions)
+  // Fork: a floating WSL terminal opens in the distro's home, like Windows Terminal.
+  const startup =
+    args.preAdopted || args.worktreeId !== FLOATING_TERMINAL_WORKTREE_ID
+      ? resolvedStartup
+      : {
+          ...resolvedStartup,
+          cwd: await resolveWslProfileHomeCwd(resolvedStartup.cwd, terminalRuntimeOptions)
+        }
   const expectedWslDistro =
     resolveWslSessionContext({
       cwd: startup.cwd,

@@ -73,6 +73,22 @@ export const getTerminalWindowsShellSearchEntry = createLocalizedCatalog(() => [
       ...translateSearchKeyword(
         'auto.components.settings.terminal.windows.search.07ec155fb6',
         'bash.exe'
+      ),
+      ...translateSearchKeyword(
+        'auto.components.settings.terminal.windows.search.50894f2abe',
+        'wsl'
+      ),
+      ...translateSearchKeyword(
+        'auto.components.settings.terminal.windows.search.7fae8a507a',
+        'linux'
+      ),
+      ...translateSearchKeyword(
+        'auto.components.settings.terminal.windows.search.ce199519c9',
+        'distro'
+      ),
+      ...translateSearchKeyword(
+        'auto.components.settings.terminal.windows.search.cdc99f73bf',
+        'ubuntu'
       )
     ]
   }

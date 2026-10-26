@@ -9400,7 +9400,10 @@
           "a909136b3f": "shell",
           "1c29734248": "Shell used for new terminal panes",
           "9589abc009": "Default shell",
-          "5a5eac2f44": "Shell not found: {{value0}}"
+          "5a5eac2f44": "Shell not found: {{value0}}",
+          "5642702c73": "WSL Distribution",
+          "ff3b3fdde3": "Distro for WSL terminals outside a project, such as the floating workspace. Projects keep their own runtime.",
+          "ec029d3e3f": "Select distro"
         },
         "TerminalSettingsPreview": {
           "a63953a48a": "Preview {{value0}} theme",
@@ -11427,7 +11430,11 @@
               "6cd20b9e64": "cmd",
               "7c7056940a": "shell",
               "713c4a2f92": "Choose the default shell for new terminal panes on Windows.",
-              "13715f9d23": "Default Shell"
+              "13715f9d23": "Default Shell",
+              "50894f2abe": "wsl",
+              "7fae8a507a": "linux",
+              "ce199519c9": "distro",
+              "cdc99f73bf": "ubuntu"
             }
           }
         },
