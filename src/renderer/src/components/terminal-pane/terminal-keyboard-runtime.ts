@@ -27,7 +27,10 @@ import { recordTerminalUserInputForLeaf } from './terminal-input-activity'
 import { useAppStore } from '@/store'
 import { makePaneKey } from '../../../../shared/stable-pane-id'
 import { resolveWindowsShiftEnterEncodingForPane } from './terminal-windows-shift-enter'
-import { hasCtrlEnterCsiUAuthorityForPane } from './terminal-ctrl-enter'
+import {
+  hasCtrlEnterCsiUAuthorityForPane,
+  prefersCtrlEnterLineFeedForPane
+} from './terminal-ctrl-enter'
 import { resolveTerminalInputHostPlatform } from './terminal-input-host-platform'
 import { isLocalWindowsConptyPaneForCtrlArrow } from './terminal-ctrl-arrow-conpty'
 import { keyboardEventBelongsToScope } from './terminal-keyboard-scope'
@@ -194,6 +197,21 @@ export function createTerminalKeyboardRuntime(options: RuntimeOptions) {
       isLocalWindowsConptyPane() ? state.runtimePaneTitlesByTabId[tabId]?.[pane.id] : undefined
     )
   }
+  // Why the title for every pane: Claude Code runs in WSL panes too, where foreground routing may
+  // not be trusted yet; a committed "Claude Code" title is enough to pick the LF newline chord.
+  const prefersActivePaneCtrlEnterLineFeed = (): boolean => {
+    const manager = managerRef.current
+    const pane = manager?.getActivePane() ?? manager?.getPanes()[0]
+    if (!pane) {
+      return false
+    }
+    const state = useAppStore.getState()
+    return prefersCtrlEnterLineFeedForPane(
+      state,
+      makePaneKey(tabId, pane.leafId),
+      state.runtimePaneTitlesByTabId[tabId]?.[pane.id]
+    )
+  }
   const resolveShortcutEvent = (
     event: Parameters<typeof resolveTerminalKeyboardShortcutAction>[0]
   ) =>
@@ -211,7 +229,8 @@ export function createTerminalKeyboardRuntime(options: RuntimeOptions) {
       isActivePaneWindowsTerminalHost,
       terminalShortcutPolicy,
       hasActivePaneCtrlEnterCsiUAuthority,
-      getModifyOtherKeysActivePane
+      getModifyOtherKeysActivePane,
+      prefersActivePaneCtrlEnterLineFeed
     )
   const createCapturedInputSender = (pane: { id: number; leafId: string }, data: string) => {
     const capturedTransport = paneTransportsRef.current.get(pane.id)

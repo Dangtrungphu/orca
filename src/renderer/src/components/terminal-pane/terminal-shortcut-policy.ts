@@ -107,7 +107,9 @@ export function resolveTerminalShortcutAction(
   // Why: query-only Droid/Grok consumers need CSI-u even when the live kitty flags remain inactive.
   hasCtrlEnterCsiUAuthority?: () => boolean,
   // Why: pi arms modifyOtherKeys when its kitty query goes unanswered; see encodeModifyOtherKeysEnter.
-  getModifyOtherKeysActivePane?: () => number
+  getModifyOtherKeysActivePane?: () => number,
+  // Why: lazy so the foreground-agent lookup runs only on Ctrl+Enter; see TuiAgentConfig.ctrlEnterEncoding.
+  prefersCtrlEnterLineFeed?: () => boolean
 ): TerminalShortcutAction | null {
   const platform: NodeJS.Platform = isMac ? 'darwin' : isWindows ? 'win32' : 'linux'
   const matchOptions: KeybindingMatchOptions = { context: 'terminal', terminalShortcutPolicy }
@@ -220,6 +222,10 @@ export function resolveTerminalShortcutAction(
     !event.shiftKey &&
     event.key === 'Enter'
   ) {
+    // Why: LF is the newline chord for Claude Code and what Windows Terminal sends for Ctrl+Enter.
+    if (prefersCtrlEnterLineFeed?.() === true) {
+      return { type: 'sendInput', data: '\n' }
+    }
     const localWindowsConpty = isLocalWindowsConptyPane?.() === true
     // Why: preserve query-only TUI chords elsewhere; local ConPTY shells require negotiation or trusted consumer evidence (#12329).
     const canSendCsiU =

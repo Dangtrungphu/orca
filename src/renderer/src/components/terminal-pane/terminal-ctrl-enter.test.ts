@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { hasCtrlEnterCsiUAuthorityForPane } from './terminal-ctrl-enter'
+import {
+  hasCtrlEnterCsiUAuthorityForPane,
+  prefersCtrlEnterLineFeedForPane
+} from './terminal-ctrl-enter'
 
 const PANE_KEY = 'tab:pane'
 
@@ -98,5 +101,48 @@ describe('hasCtrlEnterCsiUAuthorityForPane', () => {
         )
       ).toBe(false)
     }
+  })
+})
+
+describe('prefersCtrlEnterLineFeedForPane', () => {
+  it('picks LF for a trusted Claude Code foreground and keeps it off CSI-u', () => {
+    const state = {
+      paneForegroundAgentByPaneKey: {
+        [PANE_KEY]: { agent: 'claude' as const, routingTrusted: true, shellForeground: false }
+      }
+    }
+    expect(prefersCtrlEnterLineFeedForPane(state, PANE_KEY)).toBe(true)
+    expect(hasCtrlEnterCsiUAuthorityForPane(state, PANE_KEY)).toBe(false)
+  })
+
+  it('accepts a committed Claude Code title when foreground routing is not trusted yet', () => {
+    expect(
+      prefersCtrlEnterLineFeedForPane(
+        { paneForegroundAgentByPaneKey: {} },
+        PANE_KEY,
+        '✳ Claude Code'
+      )
+    ).toBe(true)
+  })
+
+  it('stays off LF for the shell or for CSI-u consumers', () => {
+    expect(
+      prefersCtrlEnterLineFeedForPane(
+        {
+          paneForegroundAgentByPaneKey: {
+            [PANE_KEY]: { agent: 'claude' as const, shellForeground: true }
+          }
+        },
+        PANE_KEY,
+        '✳ Claude Code'
+      )
+    ).toBe(false)
+    const droid = {
+      paneForegroundAgentByPaneKey: {
+        [PANE_KEY]: { agent: 'droid' as const, routingTrusted: true, shellForeground: false }
+      }
+    }
+    expect(prefersCtrlEnterLineFeedForPane(droid, PANE_KEY)).toBe(false)
+    expect(hasCtrlEnterCsiUAuthorityForPane(droid, PANE_KEY)).toBe(true)
   })
 })
