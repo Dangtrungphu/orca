@@ -148,6 +148,11 @@ function createWebPreloadApi(): Partial<PreloadApi> {
     gitBash: {
       isAvailable: () => callRuntimeResult<boolean>('host.gitBash.isAvailable').catch(() => false)
     },
+    // Desktop-only: the SSH monitor watches this machine's own terminals.
+    sshMonitor: {
+      get: () => Promise.resolve({}),
+      onUpdate: () => () => {}
+    },
     ...createWebAgentStatusApi(),
     ...createWebMobileApi(),
     ...createWebTelemetryApi()

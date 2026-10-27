@@ -510,7 +510,7 @@
   box-sizing: border-box;
   position: relative;
   width: calc(100% - var(--pane-padding-x, 4px));
-  height: calc(100% - var(--pane-padding-y, 4px));
+  height: calc(100% - var(--pane-padding-y, 4px) - var(--orca-pane-bottom-bar-height, 0px));
   margin-top: var(--pane-padding-y, 4px);
   margin-left: var(--pane-padding-x, 4px);
   /* Why (#10481): a blinking cursor otherwise invalidates paint all the way up
@@ -545,7 +545,9 @@
    same amount to prevent overflow/clipping. */
 .pane[data-has-title] .xterm-container {
   margin-top: var(--orca-pane-title-height);
-  height: calc(100% - var(--orca-pane-title-height)); /* match margin-top */
+  height: calc(
+    100% - var(--orca-pane-title-height) - var(--orca-pane-bottom-bar-height, 0px)
+  ); /* match margin-top */
 }
 
 /* A pane-top banner takes real height: the terminal starts below it and refits. */
@@ -563,12 +565,36 @@
 
 .pane:has(> .pane-top-banner) .xterm-container {
   margin-top: calc(var(--pane-padding-y, 4px) + var(--orca-pane-top-banner-height, 0px));
-  height: calc(100% - var(--pane-padding-y, 4px) - var(--orca-pane-top-banner-height, 0px));
+  height: calc(
+    100% - var(--pane-padding-y, 4px) - var(--orca-pane-top-banner-height, 0px) -
+      var(--orca-pane-bottom-bar-height, 0px)
+  );
 }
 
 .pane[data-has-title]:has(> .pane-top-banner) .xterm-container {
   margin-top: calc(var(--orca-pane-title-height) + var(--orca-pane-top-banner-height, 0px));
-  height: calc(100% - var(--orca-pane-title-height) - var(--orca-pane-top-banner-height, 0px));
+  height: calc(
+    100% - var(--orca-pane-title-height) - var(--orca-pane-top-banner-height, 0px) -
+      var(--orca-pane-bottom-bar-height, 0px)
+  );
+}
+
+/* Fork: the SSH monitor bar takes real height at the bottom; the terminal refits above it. */
+.pane:has(> .pane-ssh-monitor-bar) {
+  --orca-pane-bottom-bar-height: 22px;
+}
+
+.pane-ssh-monitor-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--orca-pane-bottom-bar-height);
+  z-index: 5;
+}
+
+.pane:has(> .pane-ssh-monitor-bar) .pane-link-tooltip {
+  bottom: var(--orca-pane-bottom-bar-height);
 }
 
 /* Ghostty-style URL hover: glued to the pane's true bottom-left corner. */

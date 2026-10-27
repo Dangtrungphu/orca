@@ -32,6 +32,7 @@ import { starNagApi } from './api/star-nag-bridge'
 import { diagnosticsApi } from './api/diagnostics-bridge'
 import { settingsApi } from './api/settings-bridge'
 import { agentAwakeApi } from './api/agent-awake-bridge'
+import { sshMonitorApi } from './api/ssh-monitor-bridge'
 import { localhostWorktreeLabelsApi } from './api/localhost-worktree-labels-bridge'
 import { keybindingsApi } from './api/keybindings-bridge'
 import { codexAccountsApi } from './api/codex-accounts-bridge'
@@ -134,6 +135,7 @@ const api = {
   diagnostics: diagnosticsApi,
   settings: settingsApi,
   agentAwake: agentAwakeApi,
+  sshMonitor: sshMonitorApi,
   localhostWorktreeLabels: localhostWorktreeLabelsApi,
   keybindings: keybindingsApi,
   codexAccounts: codexAccountsApi,

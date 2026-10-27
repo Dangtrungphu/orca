@@ -73,6 +73,7 @@ vi.mock('./main-process-pty-startup', () => ({
 vi.mock('./codex-launch-preparation', () => ({ prepareCodexRuntimeHomeForLaunch: vi.fn() }))
 vi.mock('./codex-session-resume-launch', () => ({ prepareCodexSessionResumeForLaunch: vi.fn() }))
 vi.mock('./main-window-lifecycle-flags', () => ({ isRecoveryReloadInFlight: vi.fn() }))
+vi.mock('../ssh-monitor/ssh-monitor-service', () => ({ startSshMonitorService: vi.fn() }))
 
 const { attachMainWindowCoreServices } = await import('./main-window-core-services')
 

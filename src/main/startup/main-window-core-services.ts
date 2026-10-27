@@ -21,6 +21,7 @@ import {
 } from './codex-session-resume-launch'
 import { isRecoveryReloadInFlight } from './main-window-lifecycle-flags'
 import { RELAY_HOST_CLOSE_REASON } from '../../shared/relay-host-close-reason'
+import { startSshMonitorService } from '../ssh-monitor/ssh-monitor-service'
 
 export function attachMainWindowCoreServices(
   window: BrowserWindow,
@@ -115,6 +116,7 @@ export function attachMainWindowCoreServices(
   )
   automations.setWebContents(window.webContents)
   automations.start()
+  startSshMonitorService()
   attachMainWindowServices(
     window,
     store,

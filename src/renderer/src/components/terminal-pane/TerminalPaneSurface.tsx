@@ -19,6 +19,7 @@ import { handleInternalTerminalFileDrop } from './terminal-drop-handler'
 import { TerminalQuickCommandEditorDialog } from './TerminalQuickCommandEditorDialog'
 import { TerminalPaneNativeChatPortal } from './TerminalPaneNativeChatPortal'
 import { TerminalPaneSleepingPortals } from './TerminalPaneSleepingPortals'
+import { TerminalSshMonitorBarPortal } from './TerminalSshMonitorBar'
 import {
   TerminalPaneCodexRestartPortals,
   TerminalPaneMobileDriverPortals,
@@ -183,6 +184,13 @@ export function TerminalPaneSurface({
           cwd={cwd}
           managerRef={managerRef}
           paneTransportsRef={paneTransportsRef}
+        />
+      ))}
+      {managedPanes.map((pane) => (
+        <TerminalSshMonitorBarPortal
+          key={`ssh-monitor-${pane.leafId}`}
+          pane={pane}
+          paneKey={makePaneKey(tabId, pane.leafId)}
         />
       ))}
       <TerminalPaneCodexRestartPortals controller={controller} />
