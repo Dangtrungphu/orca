@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react'
 import { Activity } from 'lucide-react'
 import { toast } from 'sonner'
 import { translate } from '@/i18n/i18n'
-import { activateBrowserWorkspaceTab } from '@/lib/browser-workspace-tab-activation'
+import {
+  activateBrowserWorkspaceTab,
+  getActivatableBrowserWorkspaceTab
+} from '@/lib/browser-workspace-tab-activation'
 import { openWorkspaceBrowserTab } from '@/lib/workspace-browser-tab-open'
 import { activateAndRevealWorktree } from '@/lib/worktree-activation'
 import { cn } from '@/lib/utils'
@@ -13,6 +16,16 @@ const linksByPath = new Map<string, Promise<ServerProjectLink[]>>()
 
 function useServerLinks(worktreePath: string): ServerProjectLink[] {
   const [links, setLinks] = useState<ServerProjectLink[]>([])
+  const [readCount, setReadCount] = useState(0)
+  // Why on focus: the list is edited by hand outside Orca; coming back to the window picks up the change.
+  useEffect(() => {
+    const reread = (): void => {
+      linksByPath.delete(worktreePath)
+      setReadCount((n) => n + 1)
+    }
+    window.addEventListener('focus', reread)
+    return () => window.removeEventListener('focus', reread)
+  }, [worktreePath])
   useEffect(() => {
     let cancelled = false
     let pending = linksByPath.get(worktreePath)
@@ -28,7 +41,7 @@ function useServerLinks(worktreePath: string): ServerProjectLink[] {
     return () => {
       cancelled = true
     }
-  }, [worktreePath])
+  }, [worktreePath, readCount])
   return links
 }
 
@@ -40,13 +53,51 @@ function sameOrigin(left: string, right: string): boolean {
   }
 }
 
+function isInFront(worktreeId: string, browserWorkspaceId: string): boolean {
+  const state = useAppStore.getState()
+  const tab = getActivatableBrowserWorkspaceTab({ worktreeId, workspaceId: browserWorkspaceId })
+  const group =
+    tab && state.groupsByWorktree[worktreeId]?.find((candidate) => candidate.id === tab.groupId)
+  return Boolean(
+    tab &&
+    group?.activeTabId === tab.id &&
+    state.activeGroupIdByWorktree[worktreeId] === tab.groupId
+  )
+}
+
+// Why check again: on 27/10, twice, the first tab opened this way right after Orca started was created
+// but the workspace's previous tab came back to the front (cause not found). Selecting it the way a
+// second click does keeps it in front.
+const RECHECK_AFTER_MS = [300, 1200, 3000]
+
+function keepInFront(worktreeId: string, browserWorkspaceId: string): void {
+  for (const delay of RECHECK_AFTER_MS) {
+    setTimeout(() => {
+      if (
+        useAppStore.getState().activeWorktreeId === worktreeId &&
+        !isInFront(worktreeId, browserWorkspaceId)
+      ) {
+        activateBrowserWorkspaceTab({ worktreeId, workspaceId: browserWorkspaceId })
+      }
+    }, delay)
+  }
+}
+
+const findOriginTab = (worktreeId: string, url: string) =>
+  useAppStore
+    .getState()
+    .browserTabsByWorktree[worktreeId]?.findLast((tab) => sameOrigin(tab.url, url))
+
 async function openServerLink(
   worktreeId: string,
   worktreePath: string,
   link: ServerProjectLink
 ): Promise<void> {
   // Why providesInitialSurface: a seeded terminal in a server project would dial the host.
-  activateAndRevealWorktree(worktreeId, { providesInitialSurface: true })
+  // Why only for another workspace: the open one needs no activation, and skipping it avoids its side effects.
+  if (useAppStore.getState().activeWorktreeId !== worktreeId) {
+    activateAndRevealWorktree(worktreeId, { providesInitialSurface: true })
+  }
   const prepared = await window.api.sshMonitor.prepareServerLink(worktreePath, link.url)
   if (!prepared.ok) {
     toast.error(
@@ -59,13 +110,15 @@ async function openServerLink(
     return
   }
   // Why by origin: the page may have moved on to another view of the same server.
-  const existing = useAppStore
-    .getState()
-    .browserTabsByWorktree[worktreeId]?.find((tab) => sameOrigin(tab.url, link.url))
+  const existing = findOriginTab(worktreeId, link.url)
   if (existing && activateBrowserWorkspaceTab({ worktreeId, workspaceId: existing.id })) {
     return
   }
   await openWorkspaceBrowserTab({ workspaceId: worktreeId, url: link.url, intent: { kind: 'url' } })
+  const created = findOriginTab(worktreeId, link.url)
+  if (created) {
+    keepInFront(worktreeId, created.id)
+  }
 }
 
 const stopBubble = (event: React.SyntheticEvent): void => event.stopPropagation()
