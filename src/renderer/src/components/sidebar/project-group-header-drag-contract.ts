@@ -5,6 +5,7 @@ import type {
   ProjectGroupHeaderDragRect
 } from './project-group-header-drop'
 import { REPO_HEADER_ACTION_SELECTOR } from './project-header-drag-contract'
+import type { SidebarRootDragOptions, SidebarRootDragSession } from './sidebar-root-header-order'
 import type { ProjectGroup } from '../../../../shared/project-group-types'
 
 export type ProjectGroupDragState = {
@@ -26,6 +27,7 @@ export type UseProjectGroupHeaderDragArgs = {
   >
   projectGroupById: ReadonlyMap<string, ProjectGroup>
   onCommitProjectGroupTabOrder: (groupId: string, tabOrder: number) => void
+  sidebarRoot?: SidebarRootDragOptions | null
   getScrollContainer: () => HTMLElement | null
 }
 
@@ -45,6 +47,8 @@ export type ProjectGroupHeaderDragSession = {
   startY: number
   latestPointerY: number
   promoted: boolean
+  // Set when root groups drag together with ungrouped projects.
+  root?: SidebarRootDragSession | null
 }
 
 export const PROJECT_GROUP_HEADER_DRAG_THRESHOLD_PX = 4

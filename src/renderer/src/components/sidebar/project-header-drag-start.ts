@@ -3,8 +3,14 @@ import type { PointerEvent } from 'react'
 import {
   getProjectHeaderDragBucketKey,
   measureProjectHeaderDragRects,
-  type ProjectHeaderDragBucketKey
+  type ProjectHeaderDragBucketKey,
+  UNGROUPED_PROJECT_HEADER_BUCKET
 } from './project-header-drop'
+import {
+  createSidebarRootDragSession,
+  getSidebarRootRepoKey,
+  type SidebarRootDragOptions
+} from './sidebar-root-header-order'
 import {
   isProjectHeaderDragHandleTarget,
   isRepoHeaderActionTarget,
@@ -16,6 +22,7 @@ export function createProjectHeaderDragSession(args: {
   event: PointerEvent<HTMLElement>
   repo: Repo
   sidebarRepoHeaderIdsByBucket: ReadonlyMap<ProjectHeaderDragBucketKey, readonly string[]>
+  sidebarRoot?: SidebarRootDragOptions | null
   getScrollContainer: () => HTMLElement | null
 }): ProjectHeaderDragSession | null {
   if (args.event.button !== 0) {
@@ -29,13 +36,19 @@ export function createProjectHeaderDragSession(args: {
   }
   const bucketKey = getProjectHeaderDragBucketKey(args.repo)
   const sidebarRepoHeaderIds = args.sidebarRepoHeaderIdsByBucket.get(bucketKey) ?? []
-  // Why: a single project in its bucket has nowhere to land, so skip arming
-  // drag and let the header click toggle collapse instead.
-  if (sidebarRepoHeaderIds.length <= 1) {
-    return null
-  }
   const container = args.getScrollContainer()
   if (!container) {
+    return null
+  }
+  const root = createSidebarRootDragSession({
+    container,
+    draggedKey: getSidebarRootRepoKey(args.repo.id),
+    isRootHeader: bucketKey === UNGROUPED_PROJECT_HEADER_BUCKET,
+    options: args.sidebarRoot
+  })
+  // Why: a single project in its bucket has nowhere to land, so skip arming
+  // drag and let the header click toggle collapse instead.
+  if (!root && sidebarRepoHeaderIds.length <= 1) {
     return null
   }
   const handleEl = args.event.currentTarget
@@ -51,6 +64,7 @@ export function createProjectHeaderDragSession(args: {
     startX: args.event.clientX,
     startY: args.event.clientY,
     latestPointerY: args.event.clientY,
-    promoted: false
+    promoted: false,
+    root
   }
 }

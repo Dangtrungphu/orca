@@ -14,6 +14,12 @@ import {
   type UseProjectGroupHeaderDragArgs
 } from './project-group-header-drag-contract'
 import { createProjectGroupHeaderDragSession } from './project-group-header-drag-start'
+import {
+  computeSidebarRootDropPreview,
+  refreshSidebarRootDragRects,
+  toSidebarRootDrop
+} from './sidebar-root-header-order'
+import { useGrabbingCursorWhileDragging } from './header-drag-grabbing-cursor'
 import { getWorktreeSidebarDragAutoscroll } from './worktree-sidebar-drag-autoscroll'
 import { hasPointerBeenReleased } from './header-drag-pointer-release'
 import { swallowNextClickOnDragHandle } from './header-drag-click-swallow'
@@ -25,6 +31,7 @@ export function useProjectGroupHeaderDrag({
   sidebarProjectGroupHeaderIdsByBucket,
   projectGroupById,
   onCommitProjectGroupTabOrder,
+  sidebarRoot,
   getScrollContainer
 }: UseProjectGroupHeaderDragArgs): ProjectGroupHeaderDragController {
   const [state, setState] = useState<ProjectGroupDragState>(INITIAL_PROJECT_GROUP_DRAG_STATE)
@@ -37,6 +44,8 @@ export function useProjectGroupHeaderDrag({
   projectGroupByIdRef.current = projectGroupById
   const onCommitProjectGroupTabOrderRef = useRef(onCommitProjectGroupTabOrder)
   onCommitProjectGroupTabOrderRef.current = onCommitProjectGroupTabOrder
+  const sidebarRootRef = useRef(sidebarRoot)
+  sidebarRootRef.current = sidebarRoot
   const getContainerRef = useRef(getScrollContainer)
   getContainerRef.current = getScrollContainer
   const autoscrollLastFrameTimeRef = useRef<number | null>(null)
@@ -49,6 +58,10 @@ export function useProjectGroupHeaderDrag({
     const container = getContainerRef.current()
     const session = dragSessionRef.current
     if (!container || !session) {
+      return []
+    }
+    if (session.root) {
+      refreshSidebarRootDragRects(container, session.root)
       return []
     }
     const rects = measureProjectGroupHeaderDragRects(container, session.bucketKey)
@@ -64,6 +77,9 @@ export function useProjectGroupHeaderDrag({
         return null
       }
       const containerRect = container.getBoundingClientRect()
+      if (session.root) {
+        return computeSidebarRootDropPreview(pointerY, container, session.root)
+      }
       return computeProjectGroupHeaderDropPreview({
         pointerY,
         containerTop: containerRect.top,
@@ -126,6 +142,10 @@ export function useProjectGroupHeaderDrag({
       setState(INITIAL_PROJECT_GROUP_DRAG_STATE)
       setSessionArmed(false)
       if (sidebarDropIndex === null) {
+        return
+      }
+      if (session.root) {
+        sidebarRootRef.current?.onCommit(toSidebarRootDrop(session.root, sidebarDropIndex))
         return
       }
 
@@ -267,20 +287,7 @@ export function useProjectGroupHeaderDrag({
     sessionArmed
   ])
 
-  useEffect(() => {
-    if (state.draggingGroupId === null) {
-      return
-    }
-    const body = document.body
-    const prevCursor = body.style.cursor
-    const prevUserSelect = body.style.userSelect
-    body.style.cursor = 'grabbing'
-    body.style.userSelect = 'none'
-    return () => {
-      body.style.cursor = prevCursor
-      body.style.userSelect = prevUserSelect
-    }
-  }, [state.draggingGroupId])
+  useGrabbingCursorWhileDragging(state.draggingGroupId !== null)
 
   const onHandlePointerDown = useCallback(
     (event: React.PointerEvent<HTMLElement>, groupId: string) => {
@@ -289,6 +296,7 @@ export function useProjectGroupHeaderDrag({
         groupId,
         projectGroupById: projectGroupByIdRef.current,
         sidebarProjectGroupHeaderIdsByBucket: sidebarProjectGroupHeaderIdsByBucketRef.current,
+        sidebarRoot: sidebarRootRef.current,
         getScrollContainer: getContainerRef.current
       })
       if (!session) {

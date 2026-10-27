@@ -129,10 +129,6 @@ export function appendProjectGroupSections(
     groupByProjectGroupId.delete(projectGroup.id)
   }
 
-  for (const projectGroup of childGroupsByParentId.get(null) ?? []) {
-    appendProjectGroup(projectGroup, 0)
-  }
-
   const remainingRepoEntries = [...(groupByProjectGroupId.get(null) ?? [])]
   for (const [projectGroupId, entries] of groupByProjectGroupId) {
     if (projectGroupId === null || projectGroupsById.has(projectGroupId)) {
@@ -142,11 +138,33 @@ export function appendProjectGroupSections(
     // not fetched yet; missing metadata must not make those repos disappear.
     remainingRepoEntries.push(...entries)
   }
-  appendOrderedGroups(
-    ctx,
-    withRepoSectionDisplayLabels(sortRepoEntriesWithinGroup(remainingRepoEntries)),
-    0
+  const rootGroups = childGroupsByParentId.get(null) ?? []
+  const rootRepoEntries = withRepoSectionDisplayLabels(
+    sortRepoEntriesWithinGroup(remainingRepoEntries)
   )
+  if (projectOrderBy !== 'manual') {
+    for (const projectGroup of rootGroups) {
+      appendProjectGroup(projectGroup, 0)
+    }
+    appendOrderedGroups(ctx, rootRepoEntries, 0)
+    return
+  }
+
+  // Why: in manual order root groups (tabOrder) and ungrouped projects (projectGroupOrder)
+  // share one rank space, so a group can sit between projects; ties keep the group first.
+  let rootRepoIndex = 0
+  for (const projectGroup of rootGroups) {
+    while (
+      rootRepoIndex < rootRepoEntries.length &&
+      getEffectiveProjectGroupManualRank(rootRepoEntries[rootRepoIndex][1].repo, repoOrder) <
+        projectGroup.tabOrder
+    ) {
+      appendOrderedGroups(ctx, [rootRepoEntries[rootRepoIndex]], 0)
+      rootRepoIndex += 1
+    }
+    appendProjectGroup(projectGroup, 0)
+  }
+  appendOrderedGroups(ctx, rootRepoEntries.slice(rootRepoIndex), 0)
 }
 
 /** The same group parents used by section emission, including missing-parent roots. */

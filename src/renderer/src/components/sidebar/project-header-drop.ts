@@ -22,10 +22,12 @@ export type ProjectHeaderDragRect = {
 
 export type ProjectHeaderDropPreview = WorktreeSidebarHeaderDropPreview
 
+export const UNGROUPED_PROJECT_HEADER_BUCKET = 'ungrouped'
+
 export function getProjectHeaderDragBucketKey(
   repo: Pick<Repo, 'projectGroupId'>
 ): ProjectHeaderDragBucketKey {
-  return repo.projectGroupId ? `group:${repo.projectGroupId}` : 'ungrouped'
+  return repo.projectGroupId ? `group:${repo.projectGroupId}` : UNGROUPED_PROJECT_HEADER_BUCKET
 }
 
 export function getSidebarOrderedRepoHeaderIdsByBucket(

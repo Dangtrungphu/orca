@@ -3,8 +3,14 @@ import type { PointerEvent } from 'react'
 import {
   getProjectGroupHeaderDragBucketKey,
   measureProjectGroupHeaderDragRects,
+  ROOT_PROJECT_GROUP_HEADER_BUCKET,
   type ProjectGroupHeaderDragBucketKey
 } from './project-group-header-drop'
+import {
+  createSidebarRootDragSession,
+  getSidebarRootGroupKey,
+  type SidebarRootDragOptions
+} from './sidebar-root-header-order'
 import {
   isProjectGroupHeaderActionTarget,
   isProjectGroupHeaderDragHandleTarget,
@@ -20,6 +26,7 @@ export function createProjectGroupHeaderDragSession(args: {
     ProjectGroupHeaderDragBucketKey,
     readonly string[]
   >
+  sidebarRoot?: SidebarRootDragOptions | null
   getScrollContainer: () => HTMLElement | null
 }): ProjectGroupHeaderDragSession | null {
   if (args.event.button !== 0) {
@@ -38,12 +45,18 @@ export function createProjectGroupHeaderDragSession(args: {
   const bucketKey = getProjectGroupHeaderDragBucketKey(group, args.projectGroupById)
   const sidebarProjectGroupHeaderIds =
     args.sidebarProjectGroupHeaderIdsByBucket.get(bucketKey) ?? []
-  // Why: a lone group in a parent bucket cannot move without reparenting.
-  if (sidebarProjectGroupHeaderIds.length <= 1) {
-    return null
-  }
   const container = args.getScrollContainer()
   if (!container) {
+    return null
+  }
+  const root = createSidebarRootDragSession({
+    container,
+    draggedKey: getSidebarRootGroupKey(args.groupId),
+    isRootHeader: bucketKey === ROOT_PROJECT_GROUP_HEADER_BUCKET,
+    options: args.sidebarRoot
+  })
+  // Why: a lone group in a parent bucket cannot move without reparenting.
+  if (!root && sidebarProjectGroupHeaderIds.length <= 1) {
     return null
   }
   const handleEl = args.event.currentTarget
@@ -59,6 +72,7 @@ export function createProjectGroupHeaderDragSession(args: {
     startX: args.event.clientX,
     startY: args.event.clientY,
     latestPointerY: args.event.clientY,
-    promoted: false
+    promoted: false,
+    root
   }
 }

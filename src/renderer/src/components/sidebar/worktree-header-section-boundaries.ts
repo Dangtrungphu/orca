@@ -152,3 +152,25 @@ export function getProjectGroupHeaderSectionEndByGroupId(args: {
   }
   return sectionEndByGroupId
 }
+
+// Root groups and ungrouped projects interleave in manual order, so a root header's section ends
+// where the next root entry starts; the last root entry keeps its per-kind end.
+export function getSidebarRootSectionEndByKey(args: {
+  rows: readonly RenderRow[]
+  firstHeaderIndex: number
+  rootEntryKeys: readonly string[]
+  keyOfHeader: (row: GroupHeaderRow) => string | null
+}): Map<string, number> {
+  const rowStarts = getEstimatedRenderRowStarts(args.rows, args.firstHeaderIndex)
+  const headerIndexByKey = indexHeaderRenderRows(args.rows, args.keyOfHeader)
+  const sectionEndByKey = new Map<string, number>()
+  args.rootEntryKeys.forEach((key, index) => {
+    const nextKey = args.rootEntryKeys[index + 1]
+    const nextHeaderIndex = nextKey ? headerIndexByKey.get(nextKey) : undefined
+    const sectionEnd = nextHeaderIndex !== undefined ? rowStarts[nextHeaderIndex] : undefined
+    if (sectionEnd !== undefined) {
+      sectionEndByKey.set(key, sectionEnd)
+    }
+  })
+  return sectionEndByKey
+}
