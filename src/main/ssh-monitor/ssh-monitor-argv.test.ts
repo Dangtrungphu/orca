@@ -7,17 +7,17 @@ function userArgs(argv: string[]): string[] | undefined {
 
 describe('buildSshMonitorTarget', () => {
   it('opens a non-interactive, non-master channel to the same destination', () => {
-    const target = buildSshMonitorTarget(['ssh', 'srv96'])!
-    expect(target.destination).toBe('srv96')
+    const target = buildSshMonitorTarget(['ssh', 'my-server'])!
+    expect(target.destination).toBe('my-server')
     const mux = buildSshMonitorArgs(target, 'mux')
     expect(mux.slice(0, 6)).toEqual(['-T', '-q', '-o', 'BatchMode=yes', '-o', 'ControlMaster=no'])
     expect(mux).not.toContain('ControlPath=none')
-    expect(mux.slice(-2)).toEqual(['srv96', 'sh -s'])
+    expect(mux.slice(-2)).toEqual(['my-server', 'sh -s'])
     // Why before the user's options: ssh keeps the first value, so multiplexing stays off.
     expect(buildSshMonitorArgs(target, 'direct').slice(-4)).toEqual([
       '-o',
       'ControlPath=none',
-      'srv96',
+      'my-server',
       'sh -s'
     ])
   })
@@ -35,7 +35,7 @@ describe('buildSshMonitorTarget', () => {
   })
 
   it('ignores control commands, stdio proxies and argv without a destination', () => {
-    expect(buildSshMonitorTarget(['ssh', '-O', 'exit', 'srv96'])).toBeNull()
+    expect(buildSshMonitorTarget(['ssh', '-O', 'exit', 'my-server'])).toBeNull()
     expect(buildSshMonitorTarget(['ssh', '-W', 'db:5432', 'bastion'])).toBeNull()
     expect(buildSshMonitorTarget(['ssh', '-v'])).toBeNull()
     expect(buildSshMonitorTarget(['ssh', '-p'])).toBeNull()
