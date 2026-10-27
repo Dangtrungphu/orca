@@ -72,6 +72,21 @@ class SshMonitorService {
     return update
   }
 
+  async disconnect(paneKey: string): Promise<boolean> {
+    const session = this.sessions.get(paneKey)
+    if (!session) {
+      return false
+    }
+    // Why check comm: the pid came from a scan up to 2 s ago and may have been reused since.
+    const result = await runOnMonitorHost(session.host, 'sh', [
+      '-c',
+      '[ "$(cat /proc/$1/comm 2>/dev/null)" = ssh ] && kill -USR1 "$1"',
+      'sh',
+      String(session.pid)
+    ])
+    return result.code === 0
+  }
+
   dispose(): void {
     this.disposed = true
     if (this.reconcileTimer) {
@@ -265,6 +280,9 @@ export function startSshMonitorService(): void {
   service = new SshMonitorService()
   // Why a getter: a reloaded window would otherwise wait for the next change to see the bars.
   ipcMain.handle(SSH_MONITOR_CHANNELS.get, () => service?.snapshot() ?? {})
+  ipcMain.handle(SSH_MONITOR_CHANNELS.disconnect, (_event, paneKey: unknown) =>
+    typeof paneKey === 'string' ? (service?.disconnect(paneKey) ?? false) : false
+  )
   app.on('will-quit', () => service?.dispose())
   service.start()
 }

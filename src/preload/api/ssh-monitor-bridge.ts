@@ -4,6 +4,8 @@ import type { PreloadApi } from '../api-types'
 
 export const sshMonitorApi = {
   get: (): Promise<SshMonitorUpdate> => ipcRenderer.invoke(SSH_MONITOR_CHANNELS.get),
+  disconnect: (paneKey: string): Promise<boolean> =>
+    ipcRenderer.invoke(SSH_MONITOR_CHANNELS.disconnect, paneKey),
   onUpdate: (callback: (update: SshMonitorUpdate) => void): (() => void) => {
     const listener = (_event: Electron.IpcRendererEvent, update: SshMonitorUpdate): void =>
       callback(update)

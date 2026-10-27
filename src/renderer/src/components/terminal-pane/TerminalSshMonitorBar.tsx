@@ -1,5 +1,16 @@
 import { createPortal } from 'react-dom'
-import { ArrowDown, ArrowUp, Clock, Cpu, HardDrive, MemoryStick, Server, User } from 'lucide-react'
+import {
+  ArrowDown,
+  ArrowUp,
+  Clock,
+  Cpu,
+  HardDrive,
+  MemoryStick,
+  Server,
+  Unplug,
+  User
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { translate } from '@/i18n/i18n'
 import type { ManagedPane } from '@/lib/pane-manager/pane-manager-types'
 import type { SshMonitorStats } from '../../../../shared/ssh-monitor-types'
@@ -136,37 +147,48 @@ export function TerminalSshMonitorBarPortal({
     return null
   }
   return createPortal(
-    <div className="pane-ssh-monitor-bar flex items-center gap-2 overflow-hidden whitespace-nowrap border-t border-border bg-background/90 px-2 text-[11px] text-muted-foreground backdrop-blur-sm">
-      {state.status === 'live' ? (
-        <LiveSegments stats={state.stats} destination={state.destination} />
-      ) : state.status === 'connecting' ? (
-        <span>
-          {translate(
-            'auto.components.terminal.pane.TerminalSshMonitorBar.8e2b6c51f0',
-            'Waiting for {{value0}}…',
-            {
-              value0: state.destination
-            }
-          )}
-        </span>
-      ) : (
-        <span
-          className="truncate"
-          title={translate(
-            'auto.components.terminal.pane.TerminalSshMonitorBar.b47d90e3a1',
-            'Use an SSH key, or ControlMaster with ControlPersist in ~/.ssh/config, so the monitor can share the connection.'
-          )}
-        >
-          {translate(
-            'auto.components.terminal.pane.TerminalSshMonitorBar.5f61e2c8b7',
-            'No server stats for {{value0}}: {{value1}}',
-            {
-              value0: state.destination,
-              value1: state.reason
-            }
-          )}
-        </span>
-      )}
+    <div className="pane-ssh-monitor-bar flex items-center gap-2 whitespace-nowrap border-t border-border bg-background/90 px-2 text-[11px] text-muted-foreground backdrop-blur-sm">
+      <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
+        {state.status === 'live' ? (
+          <LiveSegments stats={state.stats} destination={state.destination} />
+        ) : state.status === 'connecting' ? (
+          <span>
+            {translate(
+              'auto.components.terminal.pane.TerminalSshMonitorBar.8e2b6c51f0',
+              'Waiting for {{value0}}…',
+              {
+                value0: state.destination
+              }
+            )}
+          </span>
+        ) : (
+          <span
+            className="truncate"
+            title={translate(
+              'auto.components.terminal.pane.TerminalSshMonitorBar.b47d90e3a1',
+              'Use an SSH key, or ControlMaster with ControlPersist in ~/.ssh/config, so the monitor can share the connection.'
+            )}
+          >
+            {translate(
+              'auto.components.terminal.pane.TerminalSshMonitorBar.5f61e2c8b7',
+              'No server stats for {{value0}}: {{value1}}',
+              {
+                value0: state.destination,
+                value1: state.reason
+              }
+            )}
+          </span>
+        )}
+      </div>
+      <Button
+        variant="ghost"
+        size="chip"
+        className="shrink-0"
+        onClick={() => void window.api.sshMonitor.disconnect(paneKey)}
+      >
+        <Unplug />
+        {translate('auto.components.terminal.pane.TerminalSshMonitorBar.c3e8a1f9d2', 'Disconnect')}
+      </Button>
     </div>,
     pane.container,
     `ssh-monitor-${pane.id}`

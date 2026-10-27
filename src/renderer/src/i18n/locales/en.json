@@ -3772,7 +3772,8 @@
             "3c1f0a9d42": "{{value0}} days",
             "8e2b6c51f0": "Waiting for {{value0}}…",
             "b47d90e3a1": "Use an SSH key, or ControlMaster with ControlPersist in ~/.ssh/config, so the monitor can share the connection.",
-            "5f61e2c8b7": "No server stats for {{value0}}: {{value1}}"
+            "5f61e2c8b7": "No server stats for {{value0}}: {{value1}}",
+            "c3e8a1f9d2": "Disconnect"
           }
         }
       },

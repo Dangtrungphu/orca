@@ -151,7 +151,8 @@ function createWebPreloadApi(): Partial<PreloadApi> {
     // Desktop-only: the SSH monitor watches this machine's own terminals.
     sshMonitor: {
       get: () => Promise.resolve({}),
-      onUpdate: () => () => {}
+      onUpdate: () => () => {},
+      disconnect: () => Promise.resolve(false)
     },
     ...createWebAgentStatusApi(),
     ...createWebMobileApi(),

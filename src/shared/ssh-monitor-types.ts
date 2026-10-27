@@ -1,7 +1,8 @@
 /** Fork: the MobaXterm-style monitor bar under terminals that run an interactive `ssh`. */
 export const SSH_MONITOR_CHANNELS = {
   get: 'sshMonitor:get',
-  update: 'sshMonitor:update'
+  update: 'sshMonitor:update',
+  disconnect: 'sshMonitor:disconnect'
 } as const
 
 export type SshMonitorDisk = {
@@ -36,4 +37,6 @@ export type SshMonitorUpdate = Record<string, SshMonitorPaneState>
 export type SshMonitorApi = {
   get: () => Promise<SshMonitorUpdate>
   onUpdate: (callback: (update: SshMonitorUpdate) => void) => () => void
+  /** Ends the pane's ssh with SIGUSR1 (exit status 138), which the server-project shell reads as a hang-up. */
+  disconnect: (paneKey: string) => Promise<boolean>
 }
