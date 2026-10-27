@@ -1,6 +1,4 @@
 import type { ChildProcessWithoutNullStreams } from 'node:child_process'
-import { readFile } from 'node:fs/promises'
-import path from 'node:path'
 import { app, ipcMain } from 'electron'
 import {
   SSH_MONITOR_CHANNELS,
@@ -24,6 +22,8 @@ import {
   type MonitorHost
 } from './ssh-monitor-host'
 import { startSshScanner, type ScannedSshSession, type SshScanner } from './ssh-monitor-scan'
+import { readServerLinks } from './server-links'
+import { prepareServerLink, readServerHost } from './server-project'
 import { computeSshMonitorStats, type SshMonitorSnapshot } from './ssh-monitor-stats'
 
 const HOST_RECONCILE_MS = 30_000
@@ -274,23 +274,6 @@ class SshMonitorService {
 
 let service: SshMonitorService | null = null
 
-const SSH_HOST_ALIAS = /^[\w.@:-]+$/
-
-async function readServerHost(worktreePath: unknown): Promise<string | null> {
-  if (typeof worktreePath !== 'string' || worktreePath === '') {
-    return null
-  }
-  try {
-    const firstLine = (await readFile(path.join(worktreePath, '.ssh-host'), 'utf8')).split(
-      /\r?\n/
-    )[0]
-    const host = firstLine.trim()
-    return SSH_HOST_ALIAS.test(host) ? host : null
-  } catch {
-    return null
-  }
-}
-
 /** Fork: starts the SSH monitor once per app run; its processes end with the app. */
 export function startSshMonitorService(): void {
   if (service) {
@@ -304,6 +287,13 @@ export function startSshMonitorService(): void {
   )
   ipcMain.handle(SSH_MONITOR_CHANNELS.serverHost, (_event, worktreePath: unknown) =>
     readServerHost(worktreePath)
+  )
+  ipcMain.handle(SSH_MONITOR_CHANNELS.serverLinks, (_event, worktreePath: unknown) =>
+    typeof worktreePath === 'string' && worktreePath !== '' ? readServerLinks(worktreePath) : []
+  )
+  ipcMain.handle(
+    SSH_MONITOR_CHANNELS.prepareServerLink,
+    (_event, worktreePath: unknown, url: unknown) => prepareServerLink(worktreePath, url)
   )
   app.on('will-quit', () => service?.dispose())
   service.start()

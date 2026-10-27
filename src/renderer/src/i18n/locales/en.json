@@ -6975,6 +6975,9 @@
           "underDistro": "This host can only add folders under \\\\wsl.localhost\\{{value0}}.",
           "windowsDrive": "Folders on a Windows drive stay on this computer. Choose this computer as the host to add one."
         },
+        "WorktreeCardServerLinks": {
+          "6f3a9d21c4": "Could not open {{value0}}: {{value1}}"
+        },
         "WorktreeCardSshServerControl": {
           "4d1e7c0a92": "Disconnect",
           "9b2f5e3c17": "Connect"

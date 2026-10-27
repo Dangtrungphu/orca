@@ -30,7 +30,8 @@ export const LOCAL_MONITOR_HOST: MonitorHost = {
 export function runOnMonitorHost(
   host: MonitorHost,
   program: string,
-  args: string[]
+  args: string[],
+  timeoutMs = PROBE_TIMEOUT_MS
 ): Promise<{ code: number | null; stdout: string }> {
   return new Promise((resolve) => {
     let stdout = ''
@@ -41,7 +42,7 @@ export function runOnMonitorHost(
       resolve({ code: null, stdout })
       return
     }
-    const timer = setTimeout(() => child.kill(), PROBE_TIMEOUT_MS)
+    const timer = setTimeout(() => child.kill(), timeoutMs)
     child.stdin.end()
     child.stdout.on('data', (chunk: Buffer) => (stdout += chunk.toString()))
     child.stderr.resume()

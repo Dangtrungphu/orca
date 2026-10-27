@@ -153,7 +153,9 @@ function createWebPreloadApi(): Partial<PreloadApi> {
       get: () => Promise.resolve({}),
       onUpdate: () => () => {},
       disconnect: () => Promise.resolve(false),
-      serverHost: () => Promise.resolve(null)
+      serverHost: () => Promise.resolve(null),
+      serverLinks: () => Promise.resolve([]),
+      prepareServerLink: () => Promise.resolve({ ok: false, reason: 'desktop only' })
     },
     ...createWebAgentStatusApi(),
     ...createWebMobileApi(),
