@@ -47,6 +47,7 @@ import {
   shouldIgnoreRepoHeaderToggle
 } from './header-event-guards'
 import type { WorktreeSidebarHeaderDrag } from '../drag/use-header-drag'
+import { getSidebarRootGroupKey, getSidebarRootRepoKey } from '../../sidebar-root-header-order'
 import { getWorktreeOptionId } from './option-dom'
 
 export type SectionHeaderRowContext = {
@@ -129,14 +130,16 @@ export function renderWorktreeSectionHeaderRow(args: {
     isRepoHeader &&
     projectIdForHeader &&
     repoHeaderBucketKey &&
-    (headerDrag.sidebarRepoHeaderIdsByBucket.get(repoHeaderBucketKey)?.length ?? 0) > 1
+    ((headerDrag.sidebarRepoHeaderIdsByBucket.get(repoHeaderBucketKey)?.length ?? 0) > 1 ||
+      headerDrag.sidebarRootEntryKeySet?.has(getSidebarRootRepoKey(projectIdForHeader)))
   )
   const isDraggableProjectGroupHeader = Boolean(
     headerDrag.canReorderProjectGroupHeaders &&
     projectGroupIdForHeader &&
     projectGroupHeaderBucketKey &&
-    (headerDrag.sidebarProjectGroupHeaderIdsByBucket.get(projectGroupHeaderBucketKey)?.length ??
-      0) > 1
+    ((headerDrag.sidebarProjectGroupHeaderIdsByBucket.get(projectGroupHeaderBucketKey)?.length ??
+      0) > 1 ||
+      headerDrag.sidebarRootEntryKeySet?.has(getSidebarRootGroupKey(projectGroupIdForHeader)))
   )
   const isDraggingThis =
     headerDrag.canReorderRepoHeaders &&

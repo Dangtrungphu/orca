@@ -229,6 +229,65 @@ describe('project groups', () => {
     ])
   })
 
+  it('places root Project Groups between ungrouped projects by rank only in manual order', () => {
+    const group: ProjectGroup = {
+      id: 'group-1',
+      name: 'Servers',
+      parentPath: null,
+      parentGroupId: null,
+      createdFrom: 'manual',
+      tabOrder: 1500,
+      isCollapsed: false,
+      color: null,
+      createdAt: 1,
+      updatedAt: 1
+    }
+    const webRepo: Repo = { ...repo, id: 'repo-web', path: '/workspace/web', displayName: 'web' }
+    const apiRepo: Repo = {
+      ...repo,
+      id: 'repo-api',
+      path: '/workspace/api',
+      displayName: 'api',
+      projectGroupOrder: 2000
+    }
+    const repos = new Map([
+      [webRepo.id, webRepo],
+      [apiRepo.id, apiRepo]
+    ])
+    const worktrees = [
+      { ...worktree, id: 'wt-web', repoId: webRepo.id },
+      { ...worktree, id: 'wt-api', repoId: apiRepo.id }
+    ]
+    const headerKeys = (projectOrderBy: 'manual' | 'recent'): string[] =>
+      buildRows(
+        'repo',
+        worktrees,
+        repos,
+        null,
+        new Set(),
+        new Map([
+          [apiRepo.id, 0],
+          [webRepo.id, 1]
+        ]),
+        undefined,
+        projectOrderBy,
+        {},
+        new Map(worktrees.map((entry) => [entry.id, entry])),
+        false,
+        undefined,
+        [group]
+      )
+        .filter((row) => row.type === 'header')
+        .map((row) => row.key)
+
+    expect(headerKeys('manual')).toEqual([
+      'repo:repo-web',
+      'project-group:group-1',
+      'repo:repo-api'
+    ])
+    expect(headerKeys('recent')[0]).toBe('project-group:group-1')
+  })
+
   it('renders repos whose Project Group metadata is missing as top-level repo rows', () => {
     const group: ProjectGroup = {
       id: 'group-1',

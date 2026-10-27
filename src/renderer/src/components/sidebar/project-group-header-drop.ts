@@ -24,7 +24,7 @@ export type ProjectGroupTabOrderUpdate = {
   tabOrder: number
 }
 
-const ROOT_PROJECT_GROUP_HEADER_BUCKET = 'root'
+export const ROOT_PROJECT_GROUP_HEADER_BUCKET = 'root'
 
 type SidebarProjectGroupHeader = ProjectGroup | { id: null } | undefined
 

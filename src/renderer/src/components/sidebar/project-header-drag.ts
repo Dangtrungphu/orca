@@ -14,6 +14,12 @@ import {
   type UseRepoHeaderDragArgs
 } from './project-header-drag-contract'
 import { createProjectHeaderDragSession } from './project-header-drag-start'
+import {
+  computeSidebarRootDropPreview,
+  refreshSidebarRootDragRects,
+  toSidebarRootDrop
+} from './sidebar-root-header-order'
+import { useGrabbingCursorWhileDragging } from './header-drag-grabbing-cursor'
 import { getWorktreeSidebarDragAutoscroll } from './worktree-sidebar-drag-autoscroll'
 import { hasPointerBeenReleased } from './header-drag-pointer-release'
 import { swallowNextClickOnDragHandle } from './header-drag-click-swallow'
@@ -32,6 +38,7 @@ export function useRepoHeaderDrag({
   usesProjectGroupOrdering,
   onCommitRepoOrder,
   onCommitProjectGroupOrder,
+  sidebarRoot,
   getScrollContainer
 }: UseRepoHeaderDragArgs): RepoHeaderDragController {
   const [state, setState] = useState<RepoDragState>(INITIAL_REPO_DRAG_STATE)
@@ -52,6 +59,8 @@ export function useRepoHeaderDrag({
   const getLiveReposRef = useRef(getLiveRepos)
   const onCommitProjectGroupOrderRef = useRef(onCommitProjectGroupOrder)
   onCommitProjectGroupOrderRef.current = onCommitProjectGroupOrder
+  const sidebarRootRef = useRef(sidebarRoot)
+  sidebarRootRef.current = sidebarRoot
   const getContainerRef = useRef(getScrollContainer)
   getContainerRef.current = getScrollContainer
   const autoscrollLastFrameTimeRef = useRef<number | null>(null)
@@ -66,6 +75,10 @@ export function useRepoHeaderDrag({
     if (!container || !session) {
       return []
     }
+    if (session.root) {
+      refreshSidebarRootDragRects(container, session.root)
+      return []
+    }
     const rects = measureProjectHeaderDragRects(container, session.bucketKey)
     session.headerRects = rects
     return rects
@@ -78,14 +91,16 @@ export function useRepoHeaderDrag({
       if (!session || !container) {
         return null
       }
-      return computeProjectHeaderDropPreview({
-        pointerY,
-        containerTop: container.getBoundingClientRect().top,
-        scrollTop: container.scrollTop,
-        rects: session.headerRects,
-        sidebarRepoHeaderIds: session.sidebarRepoHeaderIds,
-        contentBottom: container.scrollHeight
-      })
+      return session.root
+        ? computeSidebarRootDropPreview(pointerY, container, session.root)
+        : computeProjectHeaderDropPreview({
+            pointerY,
+            containerTop: container.getBoundingClientRect().top,
+            scrollTop: container.scrollTop,
+            rects: session.headerRects,
+            sidebarRepoHeaderIds: session.sidebarRepoHeaderIds,
+            contentBottom: container.scrollHeight
+          })
     },
     []
   )
@@ -140,6 +155,10 @@ export function useRepoHeaderDrag({
       setState(INITIAL_REPO_DRAG_STATE)
       setSessionArmed(false)
       if (sidebarDropIndex === null) {
+        return
+      }
+      if (session.root) {
+        sidebarRootRef.current?.onCommit(toSidebarRootDrop(session.root, sidebarDropIndex))
         return
       }
 
@@ -286,26 +305,14 @@ export function useRepoHeaderDrag({
     sessionArmed
   ])
 
-  useEffect(() => {
-    if (state.draggingRepoId === null) {
-      return
-    }
-    const body = document.body
-    const prevCursor = body.style.cursor
-    const prevUserSelect = body.style.userSelect
-    body.style.cursor = 'grabbing'
-    body.style.userSelect = 'none'
-    return () => {
-      body.style.cursor = prevCursor
-      body.style.userSelect = prevUserSelect
-    }
-  }, [state.draggingRepoId])
+  useGrabbingCursorWhileDragging(state.draggingRepoId !== null)
 
   const onHandlePointerDown = useCallback((event: React.PointerEvent<HTMLElement>, repo: Repo) => {
     const session = createProjectHeaderDragSession({
       event,
       repo,
       sidebarRepoHeaderIdsByBucket: sidebarRepoHeaderIdsByBucketRef.current,
+      sidebarRoot: sidebarRootRef.current,
       getScrollContainer: getContainerRef.current
     })
     if (!session) {

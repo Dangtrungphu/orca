@@ -1,6 +1,7 @@
 import type { PointerEvent } from 'react'
 
 import type { ProjectHeaderDragBucketKey, ProjectHeaderDragRect } from './project-header-drop'
+import type { SidebarRootDragOptions, SidebarRootDragSession } from './sidebar-root-header-order'
 import type { Repo } from '../../../../shared/repo-types'
 
 export type RepoDragState = {
@@ -23,6 +24,7 @@ export type UseRepoHeaderDragArgs = {
   usesProjectGroupOrdering: boolean
   onCommitRepoOrder: (orderedIds: string[]) => void
   onCommitProjectGroupOrder: (project: Repo, projectGroupId: string | null, order: number) => void
+  sidebarRoot?: SidebarRootDragOptions | null
   getScrollContainer: () => HTMLElement | null
 }
 
@@ -43,6 +45,8 @@ export type ProjectHeaderDragSession = {
   startY: number
   latestPointerY: number
   promoted: boolean
+  // Set when ungrouped projects drag together with root Project Groups.
+  root?: SidebarRootDragSession | null
 }
 
 export const PROJECT_HEADER_DRAG_THRESHOLD_PX = 4
