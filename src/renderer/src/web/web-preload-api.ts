@@ -152,7 +152,8 @@ function createWebPreloadApi(): Partial<PreloadApi> {
     sshMonitor: {
       get: () => Promise.resolve({}),
       onUpdate: () => () => {},
-      disconnect: () => Promise.resolve(false)
+      disconnect: () => Promise.resolve(false),
+      serverHost: () => Promise.resolve(null)
     },
     ...createWebAgentStatusApi(),
     ...createWebMobileApi(),

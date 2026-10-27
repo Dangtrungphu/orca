@@ -36,9 +36,9 @@ type WorktreeCardSshHostControlProps = {
 
 // One shape for every state, from the sibling rename-failed control in the same title row
 // (WorktreeCard.tsx). States differ only by color token, so the pill never changes height.
-const PILL_BASE =
+export const PILL_BASE =
   'h-4 shrink-0 gap-0.5 rounded !px-0.5 text-[10px] font-medium leading-none has-[>svg]:!px-0.5'
-const PILL_QUIET =
+export const PILL_QUIET =
   'text-muted-foreground border border-worktree-sidebar-border bg-worktree-sidebar shadow-none hover:bg-worktree-sidebar-accent hover:text-foreground focus-visible:border-worktree-sidebar-border focus-visible:ring-1 focus-visible:ring-worktree-sidebar-ring'
 const PILL_FAILED =
   'text-destructive border border-destructive/40 bg-destructive/10 hover:bg-destructive/15 hover:text-destructive focus-visible:border-destructive/40 focus-visible:ring-1 focus-visible:ring-worktree-sidebar-ring'

@@ -12,6 +12,7 @@ import { resolveRepoHeaderColor } from './project-header-color'
 import { formatSparseDirectoryPreview, shouldBeginWorktreeRename } from './worktree-card-model'
 import type { WorktreeCardPresentation } from './worktree-card-presentation'
 import { WorktreeCardSshHostControl } from './WorktreeCardSshHostControl'
+import { WorktreeCardSshServerControl } from './WorktreeCardSshServerControl'
 import { WorktreeTitleInlineRename } from './WorktreeTitleInlineRename'
 import type { WorktreeCardController } from './use-worktree-card-controller'
 
@@ -238,6 +239,14 @@ export function WorktreeCardHeader({
               )}
             </TooltipContent>
           </Tooltip>
+        )}
+
+        {!repo?.connectionId && (
+          <WorktreeCardSshServerControl
+            worktreeId={worktree.id}
+            worktreePath={worktree.path}
+            onPointerDown={stopQuickActionPointerPropagation}
+          />
         )}
 
         {worktree.isSparse && (

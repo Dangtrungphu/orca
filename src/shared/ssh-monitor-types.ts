@@ -2,7 +2,8 @@
 export const SSH_MONITOR_CHANNELS = {
   get: 'sshMonitor:get',
   update: 'sshMonitor:update',
-  disconnect: 'sshMonitor:disconnect'
+  disconnect: 'sshMonitor:disconnect',
+  serverHost: 'sshMonitor:serverHost'
 } as const
 
 export type SshMonitorDisk = {
@@ -39,4 +40,6 @@ export type SshMonitorApi = {
   onUpdate: (callback: (update: SshMonitorUpdate) => void) => () => void
   /** Ends the pane's ssh with SIGUSR1 (exit status 138), which the server-project shell reads as a hang-up. */
   disconnect: (paneKey: string) => Promise<boolean>
+  /** The ssh host a server project connects to: the first line of `.ssh-host` in its folder, or null. */
+  serverHost: (worktreePath: string) => Promise<string | null>
 }

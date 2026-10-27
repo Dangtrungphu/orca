@@ -41,3 +41,12 @@ export function useSshMonitorPaneState(paneKey: string): SshMonitorPaneState | u
     () => undefined
   )
 }
+
+/** Fork: every pane's SSH monitor state, for UI that summarizes a workspace. */
+export function useSshMonitorUpdate(): SshMonitorUpdate {
+  return useSyncExternalStore(
+    subscribe,
+    () => current,
+    () => current
+  )
+}
