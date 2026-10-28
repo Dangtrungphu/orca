@@ -2,6 +2,10 @@ import { fork, type ChildProcess } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { pickAllowedEnv, RUNTIME_ENV_ALLOWLIST } from '../ai-vault/session-scanner-service-env'
+import {
+  assertWslTranscriptFsHelperCapacity,
+  recordWslTranscriptFsHelper
+} from './wsl-transcript-fs-process-wedge-registry'
 
 const PROCESS_ENTRY_FILENAME = 'wsl-transcript-fs-process-entry.js'
 
@@ -48,11 +52,14 @@ export function forkWslTranscriptFsProcess(): ChildProcess {
   if (!existsSync(entryPath)) {
     throw new Error(`WSL transcript filesystem process entry not found: ${entryPath}`)
   }
-  return fork(entryPath, [], {
+  assertWslTranscriptFsHelperCapacity()
+  const child = fork(entryPath, [], {
     env: wslTranscriptFsProcessForkEnv(),
     execArgv: [],
     serialization: 'advanced',
     stdio: ['ignore', 'ignore', 'ignore', 'ipc'],
     ...(process.platform === 'win32' ? { windowsHide: true } : {})
   })
+  recordWslTranscriptFsHelper(child)
+  return child
 }

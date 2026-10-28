@@ -20,6 +20,7 @@ import {
   type WslTranscriptFsProcessHandle
 } from './wsl-transcript-fs-process-slot'
 import { WslTranscriptFsProcessLanePool } from './wsl-transcript-fs-process-lane-pool'
+import { markWslTranscriptFsHelperRetired } from './wsl-transcript-fs-process-wedge-registry'
 import { sendWslTranscriptFsProcessRequest } from './wsl-transcript-fs-process-send'
 import {
   processHandleUnavailableError,
@@ -283,6 +284,8 @@ export class WslTranscriptFsProcessClient {
       // Teardown race: kill of an already-terminating child emits 'error' with
       // no listeners left, which throws synchronously; the child dies anyway.
     }
+    // A child that survives this kill is wedged; the registry bounds those.
+    markWslTranscriptFsHelperRetired(slot.child)
   }
 
   private releaseHandle(slot: ProcessSlot, handle: WslTranscriptFsProcessHandle): void {
