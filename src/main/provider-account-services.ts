@@ -18,7 +18,14 @@ import { readZcodePlanApiKey } from './zcode/zcode-plan-api-key-store'
 import { readOpenCodeGoApiKey } from './opencode/opencode-go-api-key-store'
 import { createAccountRuntimeTargetSettingsSync } from './rate-limits/account-runtime-target-sync'
 import { normalizeCodexRuntimeSelection } from './codex-accounts/runtime-selection'
-import { normalizeClaudeRuntimeSelection } from './claude-accounts/runtime-selection'
+import { claudeSystemDefaultUsageId } from '../shared/claude-system-default-usage-id'
+import type { InactiveClaudeAccountInfo } from './rate-limits/claude-fetcher'
+import type { GlobalSettings } from '../shared/global-settings-types'
+import type { ClaudeManagedAccountRuntimeSelection } from '../shared/managed-account-types'
+import {
+  getClaudeWslSelectionKey,
+  normalizeClaudeRuntimeSelection
+} from './claude-accounts/runtime-selection'
 import type { ClaudeStatusLineRateLimits } from '../shared/claude-statusline-rate-limits'
 
 export type ProviderAccountServices = {
@@ -140,13 +147,9 @@ export function createProviderAccountServices(
   rateLimits.setNetworkProxySettingsResolver(() => store.getSettings())
   rateLimits.setInactiveClaudeAccountsResolver(() => {
     const settings = store.getSettings()
-    const activeIds = new Set(
-      [
-        normalizeClaudeRuntimeSelection(settings).host,
-        ...Object.values(normalizeClaudeRuntimeSelection(settings).wsl)
-      ].filter(Boolean)
-    )
-    return settings.claudeManagedAccounts
+    const selection = normalizeClaudeRuntimeSelection(settings)
+    const activeIds = new Set([selection.host, ...Object.values(selection.wsl)].filter(Boolean))
+    const saved = settings.claudeManagedAccounts
       .filter((account) => !activeIds.has(account.id))
       .map((account) => ({
         id: account.id,
@@ -154,6 +157,7 @@ export function createProviderAccountServices(
         wslDistro: account.wslDistro,
         wslLinuxAuthPath: account.wslLinuxAuthPath
       }))
+    return [...saved, ...systemDefaultsBehindSelectedAccounts(selection, settings)]
   })
   rateLimits.setInactiveCodexAccountsResolver(() => {
     const settings = store.getSettings()
@@ -176,4 +180,34 @@ export function createProviderAccountServices(
       }))
   })
   return { rateLimits, codexRuntimeHome, codexAccounts, claudeRuntimeAuth, claudeAccounts }
+}
+
+/** System default still holds a login while a saved account runs in its runtime; read it too. */
+function systemDefaultsBehindSelectedAccounts(
+  selection: ClaudeManagedAccountRuntimeSelection,
+  settings: Pick<GlobalSettings, 'claudeManagedAccounts'>
+): InactiveClaudeAccountInfo[] {
+  const isSaved = (id: string | null): boolean =>
+    Boolean(id && settings.claudeManagedAccounts.some((account) => account.id === id))
+  const result: InactiveClaudeAccountInfo[] = []
+  if (isSaved(selection.host)) {
+    result.push({
+      id: claudeSystemDefaultUsageId({ runtime: 'host', wslDistro: null }),
+      systemDefault: true,
+      managedAuthRuntime: 'host'
+    })
+  }
+  for (const [distro, accountId] of Object.entries(selection.wsl)) {
+    // Why skip the default-distro key: it names no distro to read the guest home from.
+    if (distro === getClaudeWslSelectionKey(null) || !isSaved(accountId)) {
+      continue
+    }
+    result.push({
+      id: claudeSystemDefaultUsageId({ runtime: 'wsl', wslDistro: distro }),
+      systemDefault: true,
+      managedAuthRuntime: 'wsl',
+      wslDistro: distro
+    })
+  }
+  return result
 }

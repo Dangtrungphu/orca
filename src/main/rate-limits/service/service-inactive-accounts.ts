@@ -5,8 +5,17 @@ import { INACTIVE_CODEX_PROBE_STAGGER_MS, INACTIVE_FETCH_DEBOUNCE_MS } from './s
 import { delayUnlessAborted } from '../../../shared/abort-aware-delay'
 
 export abstract class RateLimitServiceInactiveAccounts extends RateLimitServicePolling {
-  async fetchInactiveClaudeAccountsOnOpen(): Promise<void> {
-    if (Date.now() - this.lastInactiveClaudeFetchAt < INACTIVE_FETCH_DEBOUNCE_MS) {
+  protected override async fetchAll(options?: { force?: boolean }): Promise<void> {
+    await super.fetchAll(options)
+    // Why: the footer shows every Claude account, so they refresh on the active account's cadence.
+    void this.fetchInactiveClaudeAccountsOnOpen({ force: options?.force })
+  }
+
+  async fetchInactiveClaudeAccountsOnOpen(options?: { force?: boolean }): Promise<void> {
+    if (
+      !options?.force &&
+      Date.now() - this.lastInactiveClaudeFetchAt < INACTIVE_FETCH_DEBOUNCE_MS
+    ) {
       return
     }
     this.pruneInactiveClaudeState()

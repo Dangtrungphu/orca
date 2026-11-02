@@ -355,18 +355,23 @@ export class ClaudeProfileRouter {
   /** Where an unselected account's usage is read: where its launches would run once selected. */
   accountUsagePreparation(accountId: string): ClaudeRuntimeAuthPreparation {
     if (this.coveredBySystemDefault(accountId)) {
-      // Why no CLAUDE_CONFIG_DIR: naming System default's folder moves Claude to another Keychain item.
-      return {
-        configDir: this.systemDefaultHome(),
-        envPatch: {},
-        provenance: 'system'
-      }
+      return this.systemDefaultUsagePreparation()
     }
     const home = this.accountHome(accountId)
     return {
       configDir: home,
       envPatch: { CLAUDE_CONFIG_DIR: home },
       provenance: `profile:${accountId}`
+    }
+  }
+
+  /** Where System default's usage is read while an account is selected. */
+  systemDefaultUsagePreparation(): ClaudeRuntimeAuthPreparation {
+    // Why no CLAUDE_CONFIG_DIR: naming System default's folder moves Claude to another Keychain item.
+    return {
+      configDir: this.systemDefaultHome(),
+      envPatch: {},
+      provenance: 'system'
     }
   }
 

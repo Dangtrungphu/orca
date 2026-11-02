@@ -170,6 +170,12 @@ export class ClaudeWslProfileRouter {
     return this.preparationFor(distro, home, await this.routed(distro, home, profile))
   }
 
+  /** Where the guest's System default usage is read while an account is selected there. */
+  async systemDefaultUsagePreparation(distro: string): Promise<ClaudeRuntimeAuthPreparation> {
+    const { home } = await this.resolve(distro)
+    return this.preparationFor(distro, home, null)
+  }
+
   async preparation(distro: string): Promise<ClaudeRuntimeAuthPreparation> {
     const { home, profile } = await this.resolve(distro)
     await this.assertPresent(distro, profile)

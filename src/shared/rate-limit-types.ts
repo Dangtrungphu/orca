@@ -80,6 +80,8 @@ export type UsageRateLimitMetadata = {
   lastSuccessfulSource?: UsageRateLimitSource
   /** Unix ms timestamp before which usage refetches should not be attempted (from HTTP Retry-After). */
   retryAtMs?: number
+  /** The login whose usage this is, so a footer showing several Claude accounts can name each. */
+  accountEmail?: string
   /** Renderer-only: the remote host that owns this usage cannot vouch for it. Hosts never set it. */
   unverifiableOwner?: boolean
   /** Renderer-only: set up on this device but not on the remote host that owns usage. Hosts never set it. */

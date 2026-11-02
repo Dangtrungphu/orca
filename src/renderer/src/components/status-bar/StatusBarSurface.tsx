@@ -28,6 +28,7 @@ import { CodexSwitcherMenu } from './CodexSwitcherMenu'
 import { ProviderDetailsMenu } from './ProviderDetailsMenu'
 import { CLOSE_ALL_CONTEXT_MENUS_EVENT } from '@/lib/close-all-context-menus'
 import { ProviderSegment, UsageOverflowChip, getUsageTone } from './StatusBarProviderSegment'
+import { ClaudeAccountsUsageSegment } from './ClaudeAccountsUsageSegment'
 import {
   UsageUnitLabel,
   getUsageUnitLabelState,
@@ -170,12 +171,22 @@ export function StatusBarSurface({
                         aria-hidden={collapsedUsageProviders.includes(p.provider)}
                         className="inline-flex data-[usage-collapsed=true]:invisible data-[usage-collapsed=true]:absolute"
                       >
-                        <ProviderSegment
-                          p={p}
-                          compact={compact}
-                          display={usagePercentageDisplay}
-                          mode={usageMode}
-                        />
+                        {/* Why local only: other accounts' usage is read on this device, not the owning host. */}
+                        {p.provider === 'claude' && !remoteOwner ? (
+                          <ClaudeAccountsUsageSegment
+                            p={p}
+                            compact={compact}
+                            display={usagePercentageDisplay}
+                            mode={usageMode}
+                          />
+                        ) : (
+                          <ProviderSegment
+                            p={p}
+                            compact={compact}
+                            display={usagePercentageDisplay}
+                            mode={usageMode}
+                          />
+                        )}
                       </span>
                     ))}
                     {collapseUsage ? (

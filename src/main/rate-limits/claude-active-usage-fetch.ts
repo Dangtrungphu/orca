@@ -9,6 +9,7 @@ import { OAuthUsageError } from './claude-oauth-usage-error'
 import type { ClaudeRateLimitFetchOptions } from './claude-usage-fetch-options'
 import { abortedClaudeRateLimitResult, makeClaudeUsageResult } from './claude-usage-result'
 import { CLAUDE_PROFILE_MISSING_MESSAGE } from '../../shared/claude-profile-routing'
+import { readClaudeUsageAccountEmail } from './claude-usage-account-email'
 
 /** Usage observes the account; only a user-started Claude process may refresh its login. */
 export async function fetchActiveClaudeRateLimits(
@@ -25,12 +26,14 @@ export async function fetchActiveClaudeRateLimits(
   if (options?.signal?.aborted) {
     return abortedClaudeRateLimitResult()
   }
-  const credentials = await readClaudeOAuthCredentials(
-    resolveClaudeOAuthCredentialReadOptions(options?.authPreparation)
-  )
+  const [credentials, accountEmail] = await Promise.all([
+    readClaudeOAuthCredentials(resolveClaudeOAuthCredentialReadOptions(options?.authPreparation)),
+    readClaudeUsageAccountEmail(options?.authPreparation)
+  ])
   const metadata = {
     credentialSource: credentials.source,
-    authProvenance: options?.authPreparation?.provenance ?? 'system'
+    authProvenance: options?.authPreparation?.provenance ?? 'system',
+    ...(accountEmail ? { accountEmail } : {})
   }
   // Why: System Default with no Claude login is an API-key or non-Claude user, not a signed-out account.
   if (
@@ -59,7 +62,10 @@ export async function fetchActiveClaudeRateLimits(
     )
   }
   try {
-    return await fetchClaudeOAuthUsage(credentials.token, options?.signal)
+    const usage = await fetchClaudeOAuthUsage(credentials.token, options?.signal)
+    return accountEmail
+      ? { ...usage, usageMetadata: { ...usage.usageMetadata, accountEmail } }
+      : usage
   } catch (error) {
     const { failureKind } = classifyClaudeOAuthUsageError(error)
     // Why: the 429 wait gates the poll, and both messages tell the user why usage is missing.
